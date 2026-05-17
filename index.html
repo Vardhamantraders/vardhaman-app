@@ -1079,26 +1079,36 @@ function doLogout(){auth.signOut().catch(function(){});VT.nav=[];}
 // ===== COUNTER =====
 function cntNo(type){
   var yr=new Date().getFullYear();
-  var ref=db.collection('counters').doc(type);
-  return db.runTransaction(function(tx){
-    return tx.get(ref).then(function(snap){
-      var existing=snap.exists?snap.data():{count:0,recycled:[]};
-      // Convert ALL recycled values to numbers (Firebase may store as string)
-      var recycled=(existing.recycled||[]).map(function(x){return parseInt(x)||0;}).filter(function(x){return x>0;});
-      var count=parseInt(existing.count)||0;
-      var px={gst:'GST',nongst:'INV',rcp:'RCP',cr:'CR',trf:'TRF'};
-      var prefix=px[type]||'DOC';
-      var n;
-      if(recycled.length>0){
-        recycled.sort(function(a,b){return a-b;});
-        n=recycled.shift();
-        tx.set(ref,{count:count,recycled:recycled});
-      } else {
-        n=count+1;
-        tx.set(ref,{count:n,recycled:[]});
+  var px={gst:'GST',nongst:'INV',rcp:'RCP',cr:'CR',trf:'TRF'};
+  var prefix=px[type]||'DOC';
+  // Get all existing numbers for this type
+  var col=type==='rcp'?'receipts':type==='cr'?'returns':type==='trf'?'approvals':'invoices';
+  var field=type==='rcp'?'receiptNo':type==='cr'?'creditNoteNo':type==='trf'?'tfrNo':'invoiceNo';
+  return db.collection(col).get().then(function(snap){
+    var used=[];
+    snap.docs.forEach(function(d){
+      var inv=d.data();
+      var no=inv[field]||inv.invoiceNo||'';
+      if(!no)return;
+      // Match prefix and year
+      var parts=no.split('-');
+      if(parts.length>=3&&parts[0]===prefix&&parts[1]===String(yr)){
+        var n=parseInt(parts[2])||0;
+        if(n>0)used.push(n);
       }
-      return prefix+'-'+yr+'-'+String(n).padStart(3,'0');
     });
+    // Find smallest missing number starting from 1
+    used.sort(function(a,b){return a-b;});
+    var next=1;
+    for(var i=0;i<used.length;i++){
+      if(used[i]===next)next++;
+      else if(used[i]>next)break;
+    }
+    // Also update counter to max used so far
+    var maxUsed=used.length>0?Math.max.apply(null,used):0;
+    var ref=db.collection('counters').doc(type);
+    ref.set({count:Math.max(maxUsed,next-1),recycled:[]});
+    return prefix+'-'+yr+'-'+String(next).padStart(3,'0');
   });
 }
 
@@ -1827,18 +1837,6 @@ function delInv(id,data,rowEl){
   p1.then(function(){
     return db.collection('invoices').doc(id).delete();
   }).then(function(){
-    // Add deleted number to recycled pool so it gets reused
-    var type=data.invoiceNo&&data.invoiceNo.startsWith('GST')?'gst':'nongst';
-    var numStr=data.invoiceNo?data.invoiceNo.split('-').pop():'';
-    var num=parseInt(numStr)||0;
-    if(num>0){
-      db.collection('counters').doc(type).get().then(function(snap){
-        var existing=snap.exists?snap.data():{count:0,recycled:[]};
-        var recycled=(existing.recycled||[]).map(function(x){return parseInt(x)||0;}).filter(function(x){return x>0;});
-        if(recycled.indexOf(num)===-1)recycled.push(num);
-        db.collection('counters').doc(type).set({count:parseInt(existing.count)||0,recycled:recycled});
-      });
-    }
     if(rowEl&&rowEl.parentNode)rowEl.parentNode.removeChild(rowEl);
     toast('Deleted! Stock & outstanding restored ✅');loading(false);loadAdmDash();
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
@@ -1875,19 +1873,6 @@ function delRcp(id,custId,amount,rcpNo,rowEl){
   p1.then(function(){
     return db.collection('receipts').doc(id).delete();
   }).then(function(){
-    // Add deleted receipt number to recycled pool
-    db.collection('receipts').doc(id).get().catch(function(){});
-    if(rcpNo){
-      var numStr=rcpNo.split('-').pop();var num=parseInt(numStr)||0;
-      if(num>0){
-        db.collection('counters').doc('rcp').get().then(function(snap){
-          var existing=snap.exists?snap.data():{count:0,recycled:[]};
-          var recycled=(existing.recycled||[]).map(function(x){return parseInt(x)||0;}).filter(function(x){return x>0;});
-          if(recycled.indexOf(num)===-1)recycled.push(num);
-          db.collection('counters').doc('rcp').set({count:parseInt(existing.count)||0,recycled:recycled});
-        });
-      }
-    }
     if(rowEl&&rowEl.parentNode)rowEl.parentNode.removeChild(rowEl);
     toast('Deleted! Outstanding restored ✅');loading(false);loadAdmDash();
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
