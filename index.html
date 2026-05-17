@@ -1301,7 +1301,24 @@ function startGST(){
   updGTotals();goTo('s-gst-sale');addGItem();
 }
 
-function onGCu(c){R('g-loc').textContent=c.location||'—';R('g-mob').textContent=c.mobile||'—';R('g-bgstn').textContent=c.gstn||'N/A';if((c.outstanding||0)>0)R('g-out-box').innerHTML='<div class="ib rd"><div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:4px;">⚠️ Previous Outstanding</div><div style="font-size:22px;font-weight:800;color:#501010;text-align:center;padding:4px 0;">'+fmt(c.outstanding)+'</div></div>';else R('g-out-box').innerHTML='';}
+function onGCu(c){
+  R('g-loc').textContent=c.location||'—';
+  R('g-mob').textContent=c.mobile||'—';
+  R('g-bgstn').textContent=c.gstn||'N/A';
+  // Fetch fresh outstanding from Firebase
+  db.collection('customers').doc(c.id).get().then(function(snap){
+    var fresh=snap.exists?snap.data():c;
+    var out=fresh.outstanding||0;
+    // Update local cache too
+    VT.custs=VT.custs.map(function(x){return x.id===c.id?Object.assign({},x,{outstanding:out}):x;});
+    if(out>0)R('g-out-box').innerHTML='<div class="ib rd"><div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:4px;">⚠️ Previous Outstanding</div><div style="font-size:22px;font-weight:800;color:#501010;text-align:center;padding:4px 0;">'+fmt(out)+'</div></div>';
+    else R('g-out-box').innerHTML='<div class="ib gr"><div style="font-size:12px;font-weight:700;color:var(--s);text-align:center;">✅ No outstanding dues</div></div>';
+  }).catch(function(){
+    var out=c.outstanding||0;
+    if(out>0)R('g-out-box').innerHTML='<div class="ib rd"><div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:4px;">⚠️ Previous Outstanding</div><div style="font-size:22px;font-weight:800;color:#501010;text-align:center;padding:4px 0;">'+fmt(out)+'</div></div>';
+    else R('g-out-box').innerHTML='';
+  });
+}
 
 function addGItem(){
   var idx=VT.gItems.length;
@@ -1334,7 +1351,7 @@ function calcItem(idx,px){
   var gdn=ge?ge.value:'Main Godown';
   var pe=R(px+'p'+idx);var prod=pe?pe.value:'';
   if(px==='g'){
-    var incl=qty*rate,taxable=incl/1.05,cgst=(incl-taxable)/2;
+    var incl=Math.round(qty*rate),taxable=Math.round(incl/1.05*100)/100,cgst=Math.round((incl-taxable)/2*100)/100;
     var ae=R('ga'+idx);if(ae)ae.textContent=fmt(incl);
     var te=R('gtx'+idx);if(te)te.textContent=fmt(taxable);
     var ce=R('gcg'+idx);if(ce)ce.textContent=fmt(cgst);
@@ -1342,7 +1359,7 @@ function calcItem(idx,px){
     VT.gItems[idx]=Object.assign(VT.gItems[idx],{qty:qty,rate:rate,incl:incl,taxable:taxable,cgst:cgst,product:prod,godown:gdn,removed:false});
     updGTotals();
   } else {
-    var amt=qty*rate;var ae2=R('na'+idx);if(ae2)ae2.textContent=fmt(amt);
+    var amt=Math.round(qty*rate);var ae2=R('na'+idx);if(ae2)ae2.textContent=fmt(amt);
     VT.nItems[idx]=Object.assign(VT.nItems[idx],{qty:qty,rate:rate,amount:amt,product:prod,godown:gdn,removed:false});
     updNTotal();
   }
@@ -1351,9 +1368,9 @@ function calcItem(idx,px){
 function updGTotals(){
   var tax=0,cgst=0,total=0;
   VT.gItems.forEach(function(i){if(!i.removed){tax+=i.taxable||0;cgst+=i.cgst||0;total+=i.incl||0;}});
-  var e1=R('g-taxable');if(e1)e1.textContent=fmt(tax);
-  var e2=R('g-cgst');if(e2)e2.textContent=fmt(cgst);
-  var e3=R('g-sgst');if(e3)e3.textContent=fmt(cgst);
+  var e1=R('g-taxable');if(e1)e1.textContent=fmt(Math.round(tax*100)/100);
+  var e2=R('g-cgst');if(e2)e2.textContent=fmt(Math.round(cgst*100)/100);
+  var e3=R('g-sgst');if(e3)e3.textContent=fmt(Math.round(cgst*100)/100);
   var e4=R('g-total');if(e4)e4.textContent=fmt(total);
 }
 
@@ -1386,7 +1403,22 @@ function startNG(){
   goTo('s-nongst-sale');addNItem();
 }
 
-function onNCu(c){R('n-loc').textContent=c.location||'—';R('n-mob').textContent=c.mobile||'—';if((c.outstanding||0)>0)R('n-out-box').innerHTML='<div class="ib rd"><div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:4px;">⚠️ Previous Outstanding</div><div style="font-size:22px;font-weight:800;color:#501010;text-align:center;padding:4px 0;">'+fmt(c.outstanding)+'</div></div>';else R('n-out-box').innerHTML='';}
+function onNCu(c){
+  R('n-loc').textContent=c.location||'—';
+  R('n-mob').textContent=c.mobile||'—';
+  // Fetch fresh outstanding from Firebase
+  db.collection('customers').doc(c.id).get().then(function(snap){
+    var fresh=snap.exists?snap.data():c;
+    var out=fresh.outstanding||0;
+    VT.custs=VT.custs.map(function(x){return x.id===c.id?Object.assign({},x,{outstanding:out}):x;});
+    if(out>0)R('n-out-box').innerHTML='<div class="ib rd"><div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:4px;">⚠️ Previous Outstanding</div><div style="font-size:22px;font-weight:800;color:#501010;text-align:center;padding:4px 0;">'+fmt(out)+'</div></div>';
+    else R('n-out-box').innerHTML='<div class="ib gr"><div style="font-size:12px;font-weight:700;color:var(--s);text-align:center;">✅ No outstanding dues</div></div>';
+  }).catch(function(){
+    var out=c.outstanding||0;
+    if(out>0)R('n-out-box').innerHTML='<div class="ib rd"><div style="font-size:11px;font-weight:700;color:var(--d);margin-bottom:4px;">⚠️ Previous Outstanding</div><div style="font-size:22px;font-weight:800;color:#501010;text-align:center;padding:4px 0;">'+fmt(out)+'</div></div>';
+    else R('n-out-box').innerHTML='';
+  });
+}
 
 function addNItem(){
   var idx=VT.nItems.length;
@@ -1461,7 +1493,23 @@ function startReceipt(){
   var pr=R('r-pmr');if(pr)pr.querySelectorAll('.pill').forEach(function(p,i){i===0?p.classList.add('on'):p.classList.remove('on');});
   goTo('s-receipt');
 }
-function onRCu(c){VT.rcpOut=c.outstanding||0;R('r-out').textContent=fmt(VT.rcpOut);R('r-prev').textContent=fmt(VT.rcpOut);R('r-bal').textContent=fmt(VT.rcpOut);}
+function onRCu(c){
+  // Fetch fresh outstanding from Firebase
+  db.collection('customers').doc(c.id).get().then(function(snap){
+    var fresh=snap.exists?snap.data():c;
+    var out=fresh.outstanding||0;
+    VT.custs=VT.custs.map(function(x){return x.id===c.id?Object.assign({},x,{outstanding:out}):x;});
+    VT.rcpOut=out;
+    R('r-out').textContent=fmt(out);
+    R('r-prev').textContent=fmt(out);
+    R('r-bal').textContent=fmt(out);
+  }).catch(function(){
+    VT.rcpOut=c.outstanding||0;
+    R('r-out').textContent=fmt(VT.rcpOut);
+    R('r-prev').textContent=fmt(VT.rcpOut);
+    R('r-bal').textContent=fmt(VT.rcpOut);
+  });
+}
 function calcRBal(){var recv=parseFloat(R('r-amt').value)||0;R('r-recv').textContent='- '+fmt(recv);R('r-bal').textContent=fmt(Math.max(0,VT.rcpOut-recv));}
 function saveRcp(){
   var ci=R('r-cu');if(!ci||!ci.value.trim()){toast('Please select a customer','error');return;}
@@ -1941,8 +1989,8 @@ function addCust(){
   var gstn=R('nc-gstn').value.trim(),bal=parseFloat(R('nc-bal').value)||0;
   if(!name||!loc||!mob){toast('Name, Location and Mobile required','error');return;}
   loading(true,'Adding...');
-  db.collection('customers').add({name:name,location:loc,mobile:mob,gstn:gstn,outstanding:bal,createdAt:FSV.serverTimestamp()}).then(function(ref){
-    VT.custs.push({id:ref.id,name:name,location:loc,mobile:mob,gstn:gstn,outstanding:bal});
+  db.collection('customers').add({name:name,location:loc,mobile:mob,gstn:gstn,outstanding:bal,openingBalance:bal,createdAt:FSV.serverTimestamp()}).then(function(ref){
+    VT.custs.push({id:ref.id,name:name,location:loc,mobile:mob,gstn:gstn,outstanding:bal,openingBalance:bal});
     R('nc-name').value='';R('nc-loc').value='';R('nc-mob').value='';R('nc-gstn').value='';R('nc-bal').value='0';
     toast('Customer added! ✅');loadCusts();loading(false);
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
@@ -2165,7 +2213,33 @@ function resetStaffPw(email){
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 
-// ===== CUSTOMER LEDGER =====
+// ===== INVOICE POPUP FROM LEDGER =====
+function showInvPopup(docId){
+  db.collection('invoices').doc(docId).get().then(function(snap){
+    if(!snap.exists){toast('Invoice not found','error');return;}
+    var inv=snap.data();
+    var pop=document.createElement('div');pop.className='pop on';pop.id='inv-pop-overlay';
+    var mob=(inv.customerMobile||'').replace(/\D/g,'');
+    var itemsHtml=(inv.items||[]).map(function(i){return '<div class="vr"><span>'+i.product+' × '+i.qty+' @ '+fmt(i.rate||0)+(inv.type==='gst'?' (incl.)':'')+'</span><span style="font-weight:800;">'+fmt(i.incl||i.amount||0)+'</span></div>';}).join('');
+    var gstHtml=inv.type==='gst'?'<div style="background:var(--pl);border-radius:8px;padding:8px 10px;margin:6px 0;"><div class="vr" style="border:none;padding:2px 0;"><span>Taxable</span><span>'+fmt(inv.taxableAmount)+'</span></div><div class="vr" style="border:none;padding:2px 0;"><span>CGST 2.5%</span><span>'+fmt(inv.cgst)+'</span></div><div class="vr" style="border:none;padding:2px 0;"><span>SGST 2.5%</span><span>'+fmt(inv.sgst)+'</span></div></div>':'';
+    var waMsg=waInv(inv,inv.type||'nongst');
+    pop.innerHTML='<div class="pbox" style="max-width:380px;padding:0;overflow:hidden;">'
+      +'<div style="background:var(--p);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;">'
+      +'<div><div style="color:#fff;font-size:14px;font-weight:800;">'+(VT.biz.name||'Vardhaman Traders')+'</div><div style="color:#b0ccf8;font-size:11px;font-weight:600;">'+(inv.type==='gst'?'TAX INVOICE':'INVOICE')+'</div></div>'
+      +'<span onclick="document.getElementById(\'inv-pop-overlay\').remove()" style="color:#fff;font-size:26px;cursor:pointer;line-height:1;">×</span></div>'
+      +'<div style="padding:14px;max-height:70vh;overflow-y:auto;">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><div><div style="font-size:10px;color:var(--tm);">Invoice No</div><div style="font-size:13px;font-weight:800;color:var(--p);">'+inv.invoiceNo+'</div></div><div style="text-align:right;"><div style="font-size:10px;color:var(--tm);">Date</div><div style="font-size:12px;font-weight:700;color:var(--td);">'+tsD(inv.createdAt)+'</div></div></div>'
+      +'<div style="background:var(--pl);border-radius:8px;padding:8px 10px;margin-bottom:10px;"><div style="font-size:10px;color:var(--tm);">Bill To</div><div style="font-size:13px;font-weight:800;color:var(--td);">'+inv.customerName+'</div>'+(inv.customerMobile?'<div style="font-size:11px;color:var(--tm);">📞 '+inv.customerMobile+'</div>':'')+'</div>'
+      +itemsHtml+gstHtml
+      +'<div class="vt"><span>Total</span><span>'+fmt(inv.totalAmount)+'</span></div>'
+      +'<div class="vr"><span>Payment</span><span style="font-weight:700;">'+inv.paymentMode+'</span></div>'
+      +'<div style="margin-top:12px;display:flex;gap:8px;">'
+      +'<button onclick="window.open(\'https://wa.me/'+mob+'?text=\'+encodeURIComponent(\''+waMsg.replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\'),\'_blank\')" style="flex:1;background:#25D366;color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">📲 Send WhatsApp</button>'
+      +'<button onclick="document.getElementById(\'inv-pop-overlay\').remove()" style="flex:0.5;background:var(--pl);color:var(--p);border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">Close</button>'
+      +'</div></div></div>';
+    document.body.appendChild(pop);
+  }).catch(function(e){toast('Error loading invoice','error');});
+}
 var clCustId=null,clCustData=null;
 function onCLCu(c){clCustId=c.id;clCustData=c;}
 
@@ -2183,51 +2257,79 @@ function loadLedger(){
     db.collection('returns').where('customerId','==',clCustId).limit(500).get()
   ]).then(function(res){
     var rows=[];
-    res[0].docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:i.type==='gst'?'GST Sale':'Non-GST Sale',ref:i.invoiceNo,details:(i.items||[]).map(function(x){return x.product;}).join(', '),debit:i.totalAmount||0,credit:0});});
+    res[0].docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:i.type==='gst'?'GST Sale':'Non-GST Sale',ref:i.invoiceNo,invDocId:d.id,invData:i,details:(i.items||[]).map(function(x){return x.product;}).join(', '),debit:i.totalAmount||0,credit:0});});
     res[1].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:'Receipt',ref:r.receiptNo,details:r.paymentMode,debit:0,credit:r.amount||0});});
     res[2].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:'Return',ref:'CR',details:(r.items||[]).map(function(x){return x.product;}).join(', '),debit:0,credit:r.totalCredit||0});});
     rows.sort(function(a,b){return a.time-b.time;});
     loading(false);
-    if(!rows.length){el.innerHTML='<div class="empty"><div class="eic">📒</div><div class="et">No transactions in this range</div></div>';return;}
-    var bal=clCustData.outstanding||0;
+    var opBal=clCustData.openingBalance||0;
     var tDebit=0,tCredit=0;
     rows.forEach(function(r){tDebit+=r.debit;tCredit+=r.credit;});
-    var html='<div style="background:var(--pl);border-radius:14px;padding:12px 14px;margin:0 14px 12px;"><div style="font-size:13px;font-weight:800;color:var(--td);">'+clCustData.name+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+from+' to '+to+'</div></div>';
-    html+='<div style="overflow-x:auto;margin:0 14px 12px;"><table class="tbl" style="min-width:500px;"><thead><tr><th>Date</th><th>Type</th><th>Ref</th><th>Details</th><th style="color:#c00;">Debit</th><th style="color:green;">Credit</th><th>Balance</th></tr></thead><tbody>';
-    var runBal=0;
+    // Always show ledger even if no transactions (show opening balance)
+    var html='<div style="background:linear-gradient(135deg,var(--p),var(--pd));border-radius:14px;padding:14px 16px;margin:0 14px 12px;">';
+    html+='<div style="color:#fff;font-size:15px;font-weight:800;">'+(VT.biz.name||'Vardhaman Traders')+'</div>';
+    html+='<div style="color:#b0ccf8;font-size:12px;font-weight:600;margin-top:2px;">Customer Ledger</div>';
+    html+='<div style="color:#fff;font-size:13px;font-weight:700;margin-top:6px;">'+clCustData.name+'</div>';
+    html+='<div style="color:#b0ccf8;font-size:11px;font-weight:600;">'+from+' to '+to+'</div></div>';
+    // Opening balance row
+    html+='<div style="overflow-x:auto;margin:0 14px 12px;"><table class="tbl" style="min-width:500px;">';
+    html+='<thead><tr style="background:var(--p);"><th style="color:#fff;">Date</th><th style="color:#fff;">Type</th><th style="color:#fff;">Invoice No</th><th style="color:#fff;">Details</th><th style="color:#ffcccc;">Debit (₹)</th><th style="color:#ccffcc;">Credit (₹)</th><th style="color:#fff;">Balance (₹)</th></tr></thead><tbody>';
+    var runBal=opBal;
+    // Opening balance row
+    if(opBal>0){
+      html+='<tr style="background:#fff3cd;"><td style="font-weight:700;">Opening</td><td style="color:var(--w);font-weight:700;">Opening Balance</td><td>—</td><td>—</td><td style="color:var(--d);font-weight:800;">'+fmt(opBal)+'</td><td>—</td><td style="font-weight:800;color:var(--td);">'+fmt(runBal)+'</td></tr>';
+    }
+    if(!rows.length&&!opBal){el.innerHTML='<div class="empty"><div class="eic">📒</div><div class="et">No transactions in this range</div></div>';return;}
     rows.forEach(function(r){
       runBal+=r.debit-r.credit;
-      var typeColor=r.type==='GST Sale'?'color:var(--d);':r.type==='Non-GST Sale'?'color:var(--w);':r.type==='Receipt'?'color:var(--s);':'color:var(--p);';
-      html+='<tr><td>'+tsD(r.time)+'</td><td style="font-weight:700;'+typeColor+'">'+r.type+'</td><td style="font-size:11px;">'+r.ref+'</td><td style="font-size:11px;max-width:120px;">'+r.details+'</td><td style="color:var(--d);font-weight:700;">'+(r.debit>0?fmt(r.debit):'—')+'</td><td style="color:var(--s);font-weight:700;">'+(r.credit>0?fmt(r.credit):'—')+'</td><td style="font-weight:800;color:var(--td);">'+fmt(runBal)+'</td></tr>';
+      var bgColor=r.type==='GST Sale'?'background:#fff0f0;':r.type==='Non-GST Sale'?'background:#fff8ee;':r.type==='Receipt'?'background:#f0fff4;':'background:#f0f8ff;';
+      var typeColor=r.type==='GST Sale'?'color:#c00;':r.type==='Non-GST Sale'?'color:var(--w);':r.type==='Receipt'?'color:var(--s);':'color:var(--p);';
+      var refHtml=r.invDocId?'<span onclick="showInvPopup(\''+r.invDocId+'\')" style="color:var(--p);font-weight:800;cursor:pointer;text-decoration:underline;">'+r.ref+'</span>':r.ref;
+      html+='<tr style="'+bgColor+'"><td>'+tsD(r.time)+'</td><td style="font-weight:700;'+typeColor+'">'+r.type+'</td><td style="font-size:11px;">'+refHtml+'</td><td style="font-size:11px;max-width:120px;">'+r.details+'</td><td style="color:var(--d);font-weight:700;">'+(r.debit>0?fmt(r.debit):'—')+'</td><td style="color:var(--s);font-weight:700;">'+(r.credit>0?fmt(r.credit):'—')+'</td><td style="font-weight:800;color:var(--td);">'+fmt(runBal)+'</td></tr>';
     });
-    html+='<tr style="background:var(--pl);"><td colspan="4" style="font-weight:800;color:var(--td);">TOTAL</td><td style="color:var(--d);font-weight:800;">'+fmt(tDebit)+'</td><td style="color:var(--s);font-weight:800;">'+fmt(tCredit)+'</td><td style="font-weight:800;color:var(--p);">'+fmt(runBal)+'</td></tr>';
+    html+='<tr style="background:var(--p);"><td colspan="4" style="font-weight:800;color:#fff;">TOTAL</td><td style="color:#ffcccc;font-weight:800;">'+fmt(tDebit+opBal)+'</td><td style="color:#ccffcc;font-weight:800;">'+fmt(tCredit)+'</td><td style="font-weight:800;color:#fff;">'+fmt(runBal)+'</td></tr>';
     html+='</tbody></table></div>';
     el.innerHTML=html;
-    VT._ledgerRows=rows;VT._ledgerCust=clCustData;VT._ledgerRange={from:from,to:to,runBal:runBal};
+    VT._ledgerRows=rows;VT._ledgerCust=clCustData;VT._ledgerRange={from:from,to:to,runBal:runBal,opBal:opBal};
+    VT._ledgerInvMap={};
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);el.innerHTML='<div class="empty"><div class="eic">❌</div><div class="et">Error loading ledger</div></div>';});
 }
 
 function exportLedger(format){
-  if(!VT._ledgerRows||!VT._ledgerRows.length){toast('Load ledger first','error');return;}
+  if(!VT._ledgerRows||!VT._ledgerCust){toast('Load ledger first','error');return;}
   var rows=VT._ledgerRows,cust=VT._ledgerCust,range=VT._ledgerRange;
-  var data=[['Date','Type','Reference','Details','Debit (₹)','Credit (₹)','Balance (₹)']];
-  var runBal=0;
+  var opBal=range.opBal||0;
+  var data=[['Date','Type','Invoice No','Details','Debit (₹)','Credit (₹)','Balance (₹)']];
+  var runBal=opBal;
+  if(opBal>0)data.push(['Opening','Opening Balance','—','—',opBal,0,opBal]);
   rows.forEach(function(r){runBal+=r.debit-r.credit;data.push([tsD(r.time),r.type,r.ref,r.details,r.debit||0,r.credit||0,runBal]);});
-  data.push(['','','','TOTAL',rows.reduce(function(s,r){return s+r.debit;},0),rows.reduce(function(s,r){return s+r.credit;},0),runBal]);
+  var totDebit=rows.reduce(function(s,r){return s+r.debit;},0)+opBal;
+  var totCredit=rows.reduce(function(s,r){return s+r.credit;},0);
+  data.push(['','','','TOTAL',totDebit,totCredit,runBal]);
   if(format==='excel'){
     var wb=XLSX.utils.book_new();
     var ws=XLSX.utils.aoa_to_sheet(data);
-    // Color coding
-    var XLSX2=XLSX;
-    ws['!cols']=[{wch:12},{wch:14},{wch:12},{wch:25},{wch:12},{wch:12},{wch:12}];
+    ws['!cols']=[{wch:12},{wch:16},{wch:14},{wch:25},{wch:12},{wch:12},{wch:12}];
     XLSX.utils.book_append_sheet(wb,ws,cust.name.substring(0,31));
     XLSX.writeFile(wb,'Ledger_'+cust.name+'_'+range.from+'_to_'+range.to+'.xlsx');
     toast('Excel downloaded! ✅');
   } else {
-    var html='<html><head><title>Customer Ledger</title><style>body{font-family:Arial,sans-serif;padding:20px;}h2{color:#0055BB;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#0055BB;color:#fff;padding:8px;}td{padding:7px;border-bottom:1px solid #ddd;}.gst{background:#ffe8e8;}.ng{background:#fff3e0;}.rcp{background:#e8f5e9;}.ret{background:#e3f2fd;}.tot{background:#f3e5f5;font-weight:800;}</style></head><body><h2>Customer Ledger — '+cust.name+'</h2><p>Period: '+range.from+' to '+range.to+'</p><table><tr><th>Date</th><th>Type</th><th>Ref</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
-    var rb=0;
-    rows.forEach(function(r){rb+=r.debit-r.credit;var cls=r.type==='GST Sale'?'gst':r.type==='Non-GST Sale'?'ng':r.type==='Receipt'?'rcp':'ret';html+='<tr class="'+cls+'"><td>'+tsD(r.time)+'</td><td>'+r.type+'</td><td>'+r.ref+'</td><td>'+r.details+'</td><td>'+(r.debit>0?'₹'+r.debit:'—')+'</td><td>'+(r.credit>0?'₹'+r.credit:'—')+'</td><td>₹'+rb+'</td></tr>';});
-    html+='<tr class="tot"><td colspan="4">TOTAL</td><td>₹'+rows.reduce(function(s,r){return s+r.debit;},0)+'</td><td>₹'+rows.reduce(function(s,r){return s+r.credit;},0)+'</td><td>₹'+rb+'</td></tr>';
+    var biz=VT.biz.name||'Vardhaman Traders';
+    var html='<html><head><title>Customer Ledger</title><style>'
+      +'body{font-family:Arial,sans-serif;padding:20px;}'
+      +'.header{background:#0055BB;color:#fff;padding:16px 20px;border-radius:10px;margin-bottom:16px;}'
+      +'.header h2{margin:0;font-size:18px;} .header p{margin:4px 0 0;font-size:12px;opacity:.8;}'
+      +'table{width:100%;border-collapse:collapse;font-size:12px;}'
+      +'th{background:#0055BB;color:#fff;padding:9px 10px;text-align:left;}'
+      +'.op{background:#fff3cd;} .gst{background:#fff0f0;} .ng{background:#fff8ee;} .rcp{background:#f0fff4;} .ret{background:#f0f8ff;} .tot{background:#0055BB;color:#fff;font-weight:800;}'
+      +'td{padding:8px 10px;border-bottom:1px solid #ddd;}'
+      +'</style></head><body>'
+      +'<div class="header"><h2>'+biz+'</h2><p>Customer Ledger · '+cust.name+' · '+range.from+' to '+range.to+'</p></div>'
+      +'<table><tr><th>Date</th><th>Type</th><th>Invoice No</th><th>Details</th><th style="color:#ffcccc;">Debit (₹)</th><th style="color:#ccffcc;">Credit (₹)</th><th>Balance (₹)</th></tr>';
+    var rb=opBal;
+    if(opBal>0)html+='<tr class="op"><td>Opening</td><td>Opening Balance</td><td>—</td><td>—</td><td style="color:#c00;font-weight:700;">₹'+opBal+'</td><td>—</td><td style="font-weight:800;">₹'+rb+'</td></tr>';
+    rows.forEach(function(r){rb+=r.debit-r.credit;var cls=r.type==='GST Sale'?'gst':r.type==='Non-GST Sale'?'ng':r.type==='Receipt'?'rcp':'ret';html+='<tr class="'+cls+'"><td>'+tsD(r.time)+'</td><td>'+r.type+'</td><td>'+r.ref+'</td><td>'+r.details+'</td><td style="color:#c00;font-weight:700;">'+(r.debit>0?'₹'+r.debit:'—')+'</td><td style="color:green;font-weight:700;">'+(r.credit>0?'₹'+r.credit:'—')+'</td><td style="font-weight:800;">₹'+rb+'</td></tr>';});
+    html+='<tr class="tot"><td colspan="4">TOTAL</td><td>₹'+totDebit+'</td><td>₹'+totCredit+'</td><td>₹'+rb+'</td></tr>';
     html+='</table></body></html>';
     var w=window.open('','_blank');if(w){w.document.write(html);w.document.close();w.print();toast('PDF opened ✅');}else toast('Allow popups for PDF','warning');
   }
