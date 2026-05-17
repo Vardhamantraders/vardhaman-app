@@ -741,7 +741,7 @@ body{background:#0a1428;}
   </div>
 </div>
 
-</div><!-- end #app -->
+
 
 <!-- ===== LEAVE MANAGEMENT (ADMIN ONLY) ===== -->
 <div class="sc" id="s-leave-mgmt">
@@ -796,7 +796,7 @@ body{background:#0a1428;}
     <div id="cl-body"><div class="empty" style="margin-top:20px;"><div class="eic">📒</div><div class="et">Select customer and date range</div></div></div>
   </div>
 </div>
-
+</div><!-- end #app -->
 <div id="rpt-pop" class="pop"><div class="pbox">
   <div style="font-size:16px;font-weight:800;color:var(--td);margin-bottom:2px;" id="rpt-title">Export Report</div>
   <div style="font-size:12px;color:var(--tm);font-weight:600;margin-bottom:14px;" id="rpt-sub">Select date range &amp; format</div>
@@ -925,7 +925,14 @@ function onOpen(id){
   if(id==='s-return'){VT.retItems=[];R('ret-items').innerHTML='';R('ret-total').textContent='₹0';R('ret-cu').value='';delete R('ret-cu').dataset.cid;cntNo('cr').then(function(no){var e=R('cr-no');if(e)e.textContent=no;});}
   if(id==='s-leave-mgmt') loadLeaveMgmt();
   if(id==='s-staff-mgmt') loadStaffMgmt();
-  if(id==='s-cust-ledger'){var t=new Date(),todayStr=t.toISOString().slice(0,10),ms2=new Date(t.getFullYear(),t.getMonth(),1).toISOString().slice(0,10);var cf=R('cl-from');var ct=R('cl-to');if(cf&&!cf.value)cf.value=ms2;if(ct&&!ct.value)ct.value=todayStr;}
+  if(id==='s-cust-ledger'){
+    clCustId=null;clCustData=null;
+    var cu=R('cl-cu');if(cu)cu.value='';
+    var t=new Date(),todayStr=t.toISOString().slice(0,10),ms2=new Date(t.getFullYear(),t.getMonth(),1).toISOString().slice(0,10);
+    var cf=R('cl-from');var ct=R('cl-to');
+    if(cf&&!cf.value)cf.value=ms2;if(ct&&!ct.value)ct.value=todayStr;
+    var clb=R('cl-body');if(clb)clb.innerHTML='<div class="empty" style="margin-top:20px;"><div class="eic">📒</div><div class="et">Select customer and date range</div></div>';
+  }
   if(id==='s-purchase') initPur();
   if(id==='s-wa-sends') loadWA();
   if(id==='s-performance') loadPerf();
@@ -1082,24 +1089,29 @@ function notifListen(){
       var nb=R('st-nb');if(!nb)return;nb.textContent=snap.size;nb.style.display=snap.size>0?'flex':'none';
     });
   } else {
-    db.collection('approvals').where('status','==','pending').onSnapshot(function(snap){
+    db.collection('approvals').onSnapshot(function(snap_all){
+    var snap={size:snap_all.docs.filter(function(d){return d.data().status==='pending';}).length};
       var nb=R('adm-nb');if(!nb)return;nb.textContent=snap.size;nb.style.display=snap.size>0?'flex':'none';
     });
   }
 }
 
 function loadNotifs(){
-  db.collection('notifications').where('toUserId','==',VT.user.uid).orderBy('createdAt','desc').limit(30).get().then(function(snap){
+  db.collection('notifications').where('toUserId','==',VT.user.uid).limit(50).get().then(function(snap){
     var el=R('notif-list');if(!el)return;
     if(snap.empty){el.innerHTML='<div class="empty"><div class="eic">🔔</div><div class="et">No notifications</div></div>';return;}
-    el.innerHTML=snap.docs.map(function(d){var n=d.data();return '<div class="lr" style="'+(n.read?'':'background:var(--pl);')+'"><div><div style="font-size:13px;font-weight:700;color:var(--td);line-height:1.5;">'+n.message+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;margin-top:2px;">'+ago(n.createdAt)+'</div></div></div>';}).join('');
+    var sorted=snap.docs.slice().sort(function(a,b){var da=a.data().createdAt&&a.data().createdAt.toDate?a.data().createdAt.toDate():new Date(0);var db2=b.data().createdAt&&b.data().createdAt.toDate?b.data().createdAt.toDate():new Date(0);return db2-da;});
+    el.innerHTML=sorted.map(function(d){var n=d.data();return '<div class="lr" style="'+(n.read?'':'background:var(--pl);')+'"><div><div style="font-size:13px;font-weight:700;color:var(--td);line-height:1.5;">'+n.message+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;margin-top:2px;">'+ago(n.createdAt)+'</div></div></div>';}).join('');
     snap.docs.forEach(function(d){if(!d.data().read)db.collection('notifications').doc(d.id).update({read:true});});
     var nb=R('st-nb');if(nb)nb.style.display='none';
   }).catch(function(){});
 }
 
 function loadAdmNotifs(){
-  db.collection('approvals').where('status','==','pending').get().then(function(snap){
+  db.collection('approvals').limit(200).get().then(function(snap){
+    var pending_notif=snap.docs.filter(function(d){return d.data().status==='pending';});
+    var snap2={docs:pending_notif,empty:!pending_notif.length};
+    var snap=snap2;
     var el=R('anotif-list');if(!el)return;
     if(snap.empty){el.innerHTML='<div class="empty"><div class="eic">✅</div><div class="et">No pending requests</div></div>';return;}
     el.innerHTML='';
@@ -1186,9 +1198,9 @@ function loadTodayActivity(){
   var act=R('st-act');if(!act)return;
   var today=td();
   var promises=[
-    db.collection('invoices').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get(),
-    db.collection('receipts').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get(),
-    db.collection('approvals').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get()
+    db.collection('invoices').where('staffId','==',VT.user.uid).limit(200).get(),
+    db.collection('receipts').where('staffId','==',VT.user.uid).limit(200).get(),
+    db.collection('approvals').where('staffId','==',VT.user.uid).limit(200).get()
   ];
   Promise.all(promises).then(function(res){
     var rows=[];
@@ -1210,9 +1222,9 @@ function loadTodayActivity(){
 function exportTodayActivity(){
   var today=td();
   var promises=[
-    db.collection('invoices').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get(),
-    db.collection('receipts').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get(),
-    db.collection('approvals').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get()
+    db.collection('invoices').where('staffId','==',VT.user.uid).limit(200).get(),
+    db.collection('receipts').where('staffId','==',VT.user.uid).limit(200).get(),
+    db.collection('approvals').where('staffId','==',VT.user.uid).limit(200).get()
   ];
   loading(true,'Preparing export...');
   Promise.all(promises).then(function(res){
@@ -1257,7 +1269,8 @@ function loadAdmDash(){
 }
 
 function loadAdmApprv(){
-  db.collection('approvals').where('status','==','pending').get().then(function(snap){
+  db.collection('approvals').limit(300).get().then(function(snap){
+    snap={docs:snap.docs.filter(function(d){return d.data().status==='pending';})};snap.empty=!snap.docs.length;
     var el=R('adm-approv');if(!el)return;
     if(snap.empty){el.innerHTML='<div class="empty"><div class="eic">✅</div><div class="et">No pending approvals</div></div>';return;}
     el.innerHTML='';
@@ -1477,7 +1490,7 @@ function saveExp(){
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 function loadExpList(){
-  db.collection('approvals').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(20).get().then(function(snap){
+  db.collection('approvals').where('staffId','==',VT.user.uid).limit(50).get().then(function(snap){
     var el=R('exp-list');if(!el)return;
     var list=snap.docs.filter(function(d){return d.data().type==='expense';});
     if(!list.length){el.innerHTML='<div class="empty"><div class="eic">💸</div><div class="et">No expenses yet</div></div>';return;}
@@ -1507,7 +1520,7 @@ function saveLv(){
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 function loadLvList(){
-  db.collection('approvals').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(20).get().then(function(snap){
+  db.collection('approvals').where('staffId','==',VT.user.uid).limit(50).get().then(function(snap){
     var el=R('lv-list');if(!el)return;
     var list=snap.docs.filter(function(d){return d.data().type==='leave';});
     if(!list.length){el.innerHTML='<div class="empty"><div class="eic">🏖️</div><div class="et">No leave history</div></div>';return;}
@@ -1544,10 +1557,46 @@ function addRetItem(){
   VT.retItems.push({product:'',qty:0,rate:0,incl:0,condition:'good',removed:false});
   var cont=R('ret-items');var div=document.createElement('div');div.className='ic';div.id='ri-'+idx;
   div.innerHTML='<div class="ich"><span style="font-size:12px;font-weight:800;color:var(--td);">Return Item '+(idx+1)+'</span><span onclick="remRet('+idx+')" style="color:var(--d);font-size:22px;cursor:pointer;line-height:1;">🗑</span></div>'+
-  '<div style="margin-bottom:8px;"><div class="fl">Product *</div><div class="fi" style="border-color:var(--p);position:relative;" id="rpw'+idx+'"><span class="fic">💧</span><input type="text" id="rp'+idx+'" placeholder="Tap to select..." readonly onclick="pDD(\'rp'+idx+'\',\'rpw'+idx+'\',function(p){VT.retItems['+idx+'].product=p.name;})"/></div></div>'+
-  '<div class="tc3"><div><div class="fl">Return Qty</div><div class="fi" style="border-color:var(--p);padding:8px;"><input type="number" id="rq'+idx+'" placeholder="0" style="text-align:center;" oninput="calcRet('+idx+')"/></div></div><div><div class="fl">Rate (₹)</div><div class="fi" style="border-color:var(--p);padding:8px;"><input type="number" id="rr'+idx+'" placeholder="0" style="text-align:center;" oninput="calcRet('+idx+')"/></div></div><div><div class="fl">Amount</div><div class="fi" style="background:var(--pl);padding:8px;justify-content:center;"><span id="ra'+idx+'" style="font-weight:800;color:var(--s);">₹0</span></div></div></div>'+
+  '<div style="margin-bottom:8px;"><div class="fl">Product *</div><div class="fi" style="border-color:var(--p);position:relative;" id="rpw'+idx+'"><span class="fic">💧</span><input type="text" id="rp'+idx+'" placeholder="Tap to select..." readonly onclick="pDD(\'rp'+idx+'\',\'rpw'+idx+'\',function(p){onRetProd('+idx+',p.name);})"/></div></div>'+
+  '<div class="tc3"><div><div class="fl">Return Qty</div><div class="fi" style="border-color:var(--p);padding:8px;"><input type="number" id="rq'+idx+'" placeholder="0" style="text-align:center;" oninput="calcRet('+idx+')"/></div></div><div><div class="fl">Rate (₹) <span id="rar'+idx+'" style="color:var(--s);font-size:9px;"></span></div><div class="fi" style="border-color:var(--p);padding:8px;"><input type="number" id="rr'+idx+'" placeholder="0" style="text-align:center;" oninput="calcRet('+idx+')"/></div></div><div><div class="fl">Amount</div><div class="fi" style="background:var(--pl);padding:8px;justify-content:center;"><span id="ra'+idx+'" style="font-weight:800;color:var(--s);">₹0</span></div></div></div>'+
   '<div style="display:flex;gap:8px;margin-top:8px;"><div id="rcg'+idx+'" onclick="setRC('+idx+',\'good\')" style="flex:1;background:var(--sl);border:1.5px solid var(--sb2);border-radius:10px;padding:8px;text-align:center;cursor:pointer;"><div style="font-size:16px;">✅</div><div style="font-size:11px;font-weight:700;color:var(--s);">Good → Stock</div></div><div id="rcd'+idx+'" onclick="setRC('+idx+',\'damaged\')" style="flex:1;background:#fff;border:1.5px solid var(--pb);border-radius:10px;padding:8px;text-align:center;cursor:pointer;"><div style="font-size:16px;">⚠️</div><div style="font-size:11px;font-weight:700;color:var(--g6);">Damaged</div></div></div>';
   cont.appendChild(div);
+}
+
+function onRetProd(idx,productName){
+  VT.retItems[idx].product=productName;
+  var rInp=R('rp'+idx);if(rInp)rInp.value=productName;
+  var rar=R('rar'+idx);
+  // Fetch last invoice rate for this product
+  db.collection('invoices').limit(200).get().then(function(snap){
+    var lastRate=null;
+    var allInv=snap.docs.map(function(d){return d.data();}).filter(function(i){
+      return (i.items||[]).some(function(it){return it.product===productName;});
+    }).sort(function(a,b){
+      var da=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate():new Date(0);
+      var db2=b.createdAt&&b.createdAt.toDate?b.createdAt.toDate():new Date(0);
+      return db2-da;
+    });
+    if(allInv.length>0){
+      var lastInv=allInv[0];
+      var item=lastInv.items.find(function(it){return it.product===productName;});
+      if(item){lastRate=item.rate||0;}
+    }
+    var rateInp=R('rr'+idx);
+    if(lastRate!==null&&lastRate>0){
+      if(rateInp)rateInp.value=lastRate;
+      if(rar)rar.textContent='Auto ✓';
+      VT.retItems[idx].rate=lastRate;
+      calcRet(idx);
+    } else {
+      if(rar)rar.textContent='';
+      if(confirm('No previous invoice found for "'+productName+'". Enter rate manually?')){
+        if(rateInp){rateInp.value='';rateInp.focus();}
+      }
+    }
+  }).catch(function(){
+    var rateInp=R('rr'+idx);if(rateInp){rateInp.value='';rateInp.focus();}
+  });
 }
 function remRet(idx){VT.retItems[idx].removed=true;var d=R('ri-'+idx);if(d)d.remove();updRetTot();}
 function setRC(idx,cond){VT.retItems[idx].condition=cond;var g=R('rcg'+idx),dm=R('rcd'+idx);if(g)g.style.background=cond==='good'?'var(--sl)':'#fff';if(dm)dm.style.background=cond==='damaged'?'var(--dl)':'#fff';}
@@ -1782,11 +1831,11 @@ function dlReport(format){
       }
     }).catch(function(){toast('Error fetching data','error');loading(false);});
   } else if(key==='gst-report'){
-    db.collection('invoices').where('type','==','gst').orderBy('createdAt','desc').limit(2000).get().then(function(snap){
+    db.collection('invoices').orderBy('createdAt','desc').limit(2000).get().then(function(snap){
       var rows=[['Sr No','Date','Invoice No','Party Name','Customer GSTN','Product Name','Per Box Price (₹)','Taxable Value (₹)','CGST (₹)','SGST (₹)','Total Value (₹)','Boxes Sold']];
       var sr=1,totTax=0,totCgst=0,totSgst=0,totVal=0,totBox=0;
       snap.docs.forEach(function(d){
-        var i=d.data();if(!inRange(i.createdAt))return;
+        var i=d.data();if(i.type!=='gst'||!inRange(i.createdAt))return;
         (i.items||[]).forEach(function(item){
           var taxable=(item.incl||0)/1.05,cgst=((item.incl||0)-taxable)/2,total=item.incl||0;
           rows.push([sr++,tsD(i.createdAt),i.invoiceNo,i.customerName,i.customerGstn||'',item.product||'',item.rate||0,Math.round(taxable),Math.round(cgst),Math.round(cgst),total,item.qty||0]);
@@ -1977,11 +2026,12 @@ function saveBiz(){
 // ===== PERFORMANCE =====
 function loadPerf(){
   var month=ms();
-  db.collection('invoices').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(200).get().then(function(snap){
+  db.collection('invoices').where('staffId','==',VT.user.uid).limit(500).get().then(function(snap){
     var boxes=0,sal=0,inv=0,rows=[];
     snap.docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=month){boxes+=i.totalBoxes||0;sal+=i.totalAmount||0;inv++;rows.push(i);}});
+    rows.sort(function(a,b){var da=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate():new Date(0);var db2=b.createdAt&&b.createdAt.toDate?b.createdAt.toDate():new Date(0);return db2-da;});
     var e1=R('pf-box');if(e1)e1.textContent=boxes;var e2=R('pf-sal');if(e2)e2.textContent=fmt(sal);var e3=R('pf-inv');if(e3)e3.textContent=inv;
-    db.collection('receipts').where('staffId','==',VT.user.uid).limit(200).get().then(function(snap2){var col=0;snap2.docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=month)col+=r.amount||0;});var e4=R('pf-col');if(e4)e4.textContent=fmt(col);});
+    db.collection('receipts').where('staffId','==',VT.user.uid).limit(500).get().then(function(snap2){var col=0;snap2.docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=month)col+=r.amount||0;});var e4=R('pf-col');if(e4)e4.textContent=fmt(col);});
     var el=R('pf-list');if(!el)return;
     if(!rows.length){el.innerHTML='<div class="empty"><div class="eic">📊</div><div class="et">No invoices this month</div></div>';return;}
     el.innerHTML=rows.slice(0,10).map(function(i){return '<div class="lr"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+i.customerName+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+i.invoiceNo+' · '+(i.totalBoxes||0)+' boxes</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:800;color:var(--td);">'+fmt(i.totalAmount)+'</div><span class="bdg '+(i.paymentMode==='Credit'?'br':i.paymentMode==='Bank'?'bb':'bg')+'">'+i.paymentMode+'</span></div></div>';}).join('');
@@ -2005,10 +2055,11 @@ function loadLeaveMgmt(){
   if(lf&&!lf.value)lf.value=mStart;if(lt&&!lt.value)lt.value=todayStr;
   if(lsf&&!lsf.value)lsf.value=mStart;if(lst&&!lst.value)lst.value=todayStr;
   // Load pending
-  db.collection('approvals').where('type','==','leave').where('status','==','pending').get().then(function(snap){
+  db.collection('approvals').where('type','==','leave').limit(200).get().then(function(snap){
     var el=R('lm-pending');if(!el)return;
-    if(snap.empty){el.innerHTML='<div class="empty"><div class="eic">✅</div><div class="et">No pending leaves</div></div>';return;}
-    el.innerHTML='';snap.docs.forEach(function(d){buildAppRow(d,el,function(){loadLeaveMgmt();});});
+    var pending=snap.docs.filter(function(d){return d.data().status==='pending';});
+    if(!pending.length){el.innerHTML='<div class="empty"><div class="eic">✅</div><div class="et">No pending leaves</div></div>';return;}
+    el.innerHTML='';pending.forEach(function(d){buildAppRow(d,el,function(){loadLeaveMgmt();});});
   }).catch(function(){});
 }
 
@@ -2017,7 +2068,7 @@ function loadLmHistory(){
   if(!from||!to){toast('Select date range','error');return;}
   var fromD=new Date(from);fromD.setHours(0,0,0,0);var toD=new Date(to);toD.setHours(23,59,59,999);
   var el=R('lm-history');el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm);">Loading...</div>';
-  db.collection('approvals').where('type','==','leave').orderBy('createdAt','desc').limit(500).get().then(function(snap){
+  db.collection('approvals').where('type','==','leave').limit(500).get().then(function(snap){
     var rows=snap.docs.filter(function(d){var dt=d.data().createdAt&&d.data().createdAt.toDate?d.data().createdAt.toDate():new Date(0);return dt>=fromD&&dt<=toD;});
     if(!rows.length){el.innerHTML='<div class="empty"><div class="eic">🏖️</div><div class="et">No leaves in this range</div></div>';return;}
     el.innerHTML=rows.map(function(d){var l=d.data();var bdg=l.status==='approved'?'<span class="bdg bg">✅ Approved</span>':l.status==='rejected'?'<span class="bdg br">❌ Rejected</span>':'<span class="bdg bo">⏳ Pending</span>';return '<div class="lr" style="flex-wrap:wrap;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+l.staffName+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+(l.fromDate||'')+' → '+(l.toDate||'')+' ('+l.days+' days)</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+(l.description||'')+'</div></div>'+bdg+'</div>';}).join('');
@@ -2029,7 +2080,7 @@ function loadLmSummary(){
   if(!from||!to){toast('Select date range','error');return;}
   var fromD=new Date(from);fromD.setHours(0,0,0,0);var toD=new Date(to);toD.setHours(23,59,59,999);
   var el=R('lm-summary');el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm);">Loading...</div>';
-  db.collection('approvals').where('type','==','leave').orderBy('createdAt','desc').limit(500).get().then(function(snap){
+  db.collection('approvals').where('type','==','leave').limit(500).get().then(function(snap){
     var map={};
     snap.docs.forEach(function(d){var l=d.data();var dt=l.createdAt&&l.createdAt.toDate?l.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD){if(!map[l.staffName])map[l.staffName]={name:l.staffName,total:0,days:0,approved:0,rejected:0,pending:0};map[l.staffName].total++;map[l.staffName].days+=l.days||0;if(l.status==='approved')map[l.staffName].approved+=l.days||0;else if(l.status==='rejected')map[l.staffName].rejected+=l.days||0;else map[l.staffName].pending+=l.days||0;}});
     var arr=Object.values(map);
@@ -2043,7 +2094,7 @@ function exportLeaves(){
   if(!from||!to){toast('Select date range first','error');return;}
   var fromD=new Date(from);fromD.setHours(0,0,0,0);var toD=new Date(to);toD.setHours(23,59,59,999);
   loading(true,'Generating...');
-  db.collection('approvals').where('type','==','leave').orderBy('createdAt','desc').limit(500).get().then(function(snap){
+  db.collection('approvals').where('type','==','leave').limit(500).get().then(function(snap){
     var wb=XLSX.utils.book_new();
     var s1=[['Sr No','Staff Name','From Date','To Date','Total Days','Reason','Status','Applied On']];
     var map={};
