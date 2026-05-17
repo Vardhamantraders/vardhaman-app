@@ -2163,9 +2163,9 @@ function loadLedger(){
   var el=R('cl-body');el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm);">Loading...</div>';
   loading(true,'Loading ledger...');
   Promise.all([
-    db.collection('invoices').where('customerId','==',clCustId).orderBy('createdAt','asc').get(),
-    db.collection('receipts').where('customerId','==',clCustId).orderBy('createdAt','asc').get(),
-    db.collection('returns').where('customerId','==',clCustId).orderBy('createdAt','asc').get()
+    db.collection('invoices').where('customerId','==',clCustId).limit(500).get(),
+    db.collection('receipts').where('customerId','==',clCustId).limit(500).get(),
+    db.collection('returns').where('customerId','==',clCustId).limit(500).get()
   ]).then(function(res){
     var rows=[];
     res[0].docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:i.type==='gst'?'GST Sale':'Non-GST Sale',ref:i.invoiceNo,details:(i.items||[]).map(function(x){return x.product;}).join(', '),debit:i.totalAmount||0,credit:0});});
