@@ -922,7 +922,7 @@ function onOpen(id){
   if(id==='s-expense') initExp();
   if(id==='s-leave') initLv();
   if(id==='s-transfer') initTrf();
-  if(id==='s-return'){VT.retItems=[];R('ret-items').innerHTML='';R('ret-total').textContent='₹0';R('ret-cu').value='';delete R('ret-cu').dataset.cid;cntNo('cr').then(function(no){var e=R('cr-no');if(e)e.textContent=no;});}
+  if(id==='s-return'){VT.retItems=[];R('ret-items').innerHTML='';R('ret-total').textContent='₹0';R('ret-cu').value='';delete R('ret-cu').dataset.cid;var crE=R('cr-no');if(crE)crE.textContent='CR-'+new Date().getFullYear()+'-...';}
   if(id==='s-leave-mgmt') loadLeaveMgmt();
   if(id==='s-staff-mgmt') loadStaffMgmt();
   if(id==='s-cust-ledger'){
@@ -1292,8 +1292,8 @@ function loadAdmPerf(){
 
 // ===== GST SALE =====
 function startGST(){
-  VT.gItems=[];VT.gPM='Cash';
-  cntNo('gst').then(function(no){var e=R('gst-no');if(e)e.textContent=no;VT.curGNo=no;});
+  VT.gItems=[];VT.gPM='Cash';VT.curGNo=null;
+  var e=R('gst-no');if(e)e.textContent='GST-'+new Date().getFullYear()+'-...';
   var ci=R('g-cu');if(ci){ci.value='';delete ci.dataset.cid;}
   R('g-loc').textContent='—';R('g-mob').textContent='—';R('g-bgstn').textContent='N/A';R('g-sgstn').textContent=VT.biz.gstn||'Not set';
   R('g-items').innerHTML='';R('g-out-box').innerHTML='';R('g-note').value='';R('g-due-row').style.display='none';
@@ -1365,18 +1365,21 @@ function saveGST(){
   var prevOut=cust?cust.outstanding||0:0,tax=0,cgst=0,total=0,boxes=0;
   items.forEach(function(i){tax+=i.taxable||0;cgst+=i.cgst||0;total+=i.incl||0;boxes+=i.qty||0;});
   loading(true,'Saving invoice...');
-  var data={invoiceNo:VT.curGNo,type:'gst',customerId:custId||'',customerName:ci.value.trim(),customerMobile:cust?cust.mobile||'':'',customerGstn:cust?cust.gstn||'':'',sellerGstn:VT.biz.gstn||'',items:items,taxableAmount:tax,cgst:cgst,sgst:cgst,totalAmount:total,totalBoxes:boxes,paymentMode:VT.gPM,note:R('g-note').value,staffId:VT.user.uid,staffName:VT.ud.name,previousOutstanding:prevOut,newOutstanding:VT.gPM==='Credit'?prevOut+total:prevOut,whatsappSent:false,createdAt:FSV.serverTimestamp()};
-  db.collection('invoices').add(data).then(function(){
-    if(custId&&VT.gPM==='Credit'){db.collection('customers').doc(custId).update({outstanding:prevOut+total});VT.custs=VT.custs.map(function(c){return c.id===custId?Object.assign({},c,{outstanding:prevOut+total}):c;});}
-    items.forEach(function(item){updStock([{product:item.product,qty:item.qty}],item.godown,'sub');});
-    VT.curInv=data;renderInv(data,'gst');goTo('s-inv-saved');toast('GST Invoice saved! ✅');loading(false);
+  cntNo('gst').then(function(no){
+    VT.curGNo=no;var e=R('gst-no');if(e)e.textContent=no;
+    var data={invoiceNo:no,type:'gst',customerId:custId||'',customerName:ci.value.trim(),customerMobile:cust?cust.mobile||'':'',customerGstn:cust?cust.gstn||'':'',sellerGstn:VT.biz.gstn||'',items:items,taxableAmount:tax,cgst:cgst,sgst:cgst,totalAmount:total,totalBoxes:boxes,paymentMode:VT.gPM,note:R('g-note').value,staffId:VT.user.uid,staffName:VT.ud.name,previousOutstanding:prevOut,newOutstanding:VT.gPM==='Credit'?prevOut+total:prevOut,whatsappSent:false,createdAt:FSV.serverTimestamp()};
+    return db.collection('invoices').add(data).then(function(){
+      if(custId&&VT.gPM==='Credit'){db.collection('customers').doc(custId).update({outstanding:prevOut+total});VT.custs=VT.custs.map(function(c){return c.id===custId?Object.assign({},c,{outstanding:prevOut+total}):c;});}
+      items.forEach(function(item){updStock([{product:item.product,qty:item.qty}],item.godown,'sub');});
+      VT.curInv=data;renderInv(data,'gst');goTo('s-inv-saved');toast('GST Invoice saved! ✅');loading(false);
+    });
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 
 // ===== NON-GST SALE =====
 function startNG(){
-  VT.nItems=[];VT.nPM='Cash';
-  cntNo('nongst').then(function(no){var e=R('ng-no');if(e)e.textContent=no;VT.curNNo=no;});
+  VT.nItems=[];VT.nPM='Cash';VT.curNNo=null;
+  var e=R('ng-no');if(e)e.textContent='INV-'+new Date().getFullYear()+'-...';
   var ci=R('n-cu');if(ci){ci.value='';delete ci.dataset.cid;}
   R('n-loc').textContent='—';R('n-mob').textContent='—';R('n-items').innerHTML='';R('n-out-box').innerHTML='';R('n-note').value='';R('n-due-row').style.display='none';R('n-total').textContent='₹0';
   var pr=R('n-pmr');if(pr)pr.querySelectorAll('.pill').forEach(function(p,i){i===0?p.classList.add('on'):p.classList.remove('on');});
@@ -1402,11 +1405,14 @@ function saveNG(){
   var prevOut=cust?cust.outstanding||0:0,total=0,boxes=0;
   items.forEach(function(i){total+=i.amount||0;boxes+=i.qty||0;});
   loading(true,'Saving invoice...');
-  var data={invoiceNo:VT.curNNo,type:'nongst',customerId:custId||'',customerName:ci.value.trim(),customerMobile:cust?cust.mobile||'':'',items:items,totalAmount:total,totalBoxes:boxes,paymentMode:VT.nPM,note:R('n-note').value,staffId:VT.user.uid,staffName:VT.ud.name,previousOutstanding:prevOut,newOutstanding:VT.nPM==='Credit'?prevOut+total:prevOut,whatsappSent:false,createdAt:FSV.serverTimestamp()};
-  db.collection('invoices').add(data).then(function(){
-    if(custId&&VT.nPM==='Credit'){db.collection('customers').doc(custId).update({outstanding:prevOut+total});VT.custs=VT.custs.map(function(c){return c.id===custId?Object.assign({},c,{outstanding:prevOut+total}):c;});}
-    items.forEach(function(item){updStock([{product:item.product,qty:item.qty}],item.godown,'sub');});
-    VT.curInv=data;renderInv(data,'nongst');goTo('s-inv-saved');toast('Invoice saved! ✅');loading(false);
+  cntNo('nongst').then(function(no){
+    VT.curNNo=no;var e=R('ng-no');if(e)e.textContent=no;
+    var data={invoiceNo:no,type:'nongst',customerId:custId||'',customerName:ci.value.trim(),customerMobile:cust?cust.mobile||'':'',items:items,totalAmount:total,totalBoxes:boxes,paymentMode:VT.nPM,note:R('n-note').value,staffId:VT.user.uid,staffName:VT.ud.name,previousOutstanding:prevOut,newOutstanding:VT.nPM==='Credit'?prevOut+total:prevOut,whatsappSent:false,createdAt:FSV.serverTimestamp()};
+    return db.collection('invoices').add(data).then(function(){
+      if(custId&&VT.nPM==='Credit'){db.collection('customers').doc(custId).update({outstanding:prevOut+total});VT.custs=VT.custs.map(function(c){return c.id===custId?Object.assign({},c,{outstanding:prevOut+total}):c;});}
+      items.forEach(function(item){updStock([{product:item.product,qty:item.qty}],item.godown,'sub');});
+      VT.curInv=data;renderInv(data,'nongst');goTo('s-inv-saved');toast('Invoice saved! ✅');loading(false);
+    });
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 
@@ -1448,8 +1454,8 @@ function sendRcpWA(){var r=VT.curRcp;if(!r)return;var mob=(r.customerMobile||'')
 
 // ===== RECEIPT =====
 function startReceipt(){
-  VT.rcpOut=0;
-  cntNo('rcp').then(function(no){var e=R('rcp-no');if(e)e.textContent=no;VT.curRNo=no;});
+  VT.rcpOut=0;VT.curRNo=null;
+  var e=R('rcp-no');if(e)e.textContent='RCP-'+new Date().getFullYear()+'-...';
   var ci=R('r-cu');if(ci){ci.value='';delete ci.dataset.cid;}
   R('r-out').textContent='₹0';R('r-amt').value='';R('r-prev').textContent='₹0';R('r-recv').textContent='- ₹0';R('r-bal').textContent='₹0';R('r-note').value='';
   var pr=R('r-pmr');if(pr)pr.querySelectorAll('.pill').forEach(function(p,i){i===0?p.classList.add('on'):p.classList.remove('on');});
@@ -1463,10 +1469,13 @@ function saveRcp(){
   var custId=ci.dataset.cid,cust=VT.custs.find(function(c){return c.id===custId;});
   var newOut=Math.max(0,VT.rcpOut-amount),payMode=getPill('r-pmr')||'Cash';
   loading(true,'Saving receipt...');
-  var data={receiptNo:VT.curRNo,customerId:custId||'',customerName:ci.value.trim(),customerMobile:cust?cust.mobile||'':'',amount:amount,paymentMode:payMode,previousOutstanding:VT.rcpOut,balanceOutstanding:newOut,note:R('r-note').value,staffId:VT.user.uid,staffName:VT.ud.name,whatsappSent:false,createdAt:FSV.serverTimestamp()};
-  db.collection('receipts').add(data).then(function(){
-    if(custId){db.collection('customers').doc(custId).update({outstanding:newOut});VT.custs=VT.custs.map(function(c){return c.id===custId?Object.assign({},c,{outstanding:newOut}):c;});}
-    VT.curRcp=data;renderRcp(data);goTo('s-rcp-saved');toast('Receipt saved! ✅');loading(false);
+  cntNo('rcp').then(function(no){
+    VT.curRNo=no;var e=R('rcp-no');if(e)e.textContent=no;
+    var data={receiptNo:no,customerId:custId||'',customerName:ci.value.trim(),customerMobile:cust?cust.mobile||'':'',amount:amount,paymentMode:payMode,previousOutstanding:VT.rcpOut,balanceOutstanding:newOut,note:R('r-note').value,staffId:VT.user.uid,staffName:VT.ud.name,whatsappSent:false,createdAt:FSV.serverTimestamp()};
+    return db.collection('receipts').add(data).then(function(){
+      if(custId){db.collection('customers').doc(custId).update({outstanding:newOut});VT.custs=VT.custs.map(function(c){return c.id===custId?Object.assign({},c,{outstanding:newOut}):c;});}
+      VT.curRcp=data;renderRcp(data);goTo('s-rcp-saved');toast('Receipt saved! ✅');loading(false);
+    });
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 
@@ -1536,19 +1545,22 @@ function initTrf(){
   else{if(info)info.textContent='Transfer request will go for approval.';if(btn)btn.textContent='Submit Transfer 📤';}
   var tp=R('trf-prod');if(tp){tp.value='';delete tp.dataset.pid;}var tq=R('trf-qty');if(tq)tq.value='';var tn=R('trf-note');if(tn)tn.value='';
   var tf=R('trf-from');if(tf)tf.value='Main Godown';var tt=R('trf-to');if(tt)tt.value='Dukan';
-  cntNo('trf').then(function(no){var e=R('trf-no');if(e)e.textContent=no;});
+  var e=R('trf-no');if(e)e.textContent='TRF-'+new Date().getFullYear()+'-...';
 }
 function trfSwap(changed){var f=R('trf-from'),t=R('trf-to');if(changed==='from')t.value=f.value==='Main Godown'?'Dukan':'Main Godown';else f.value=t.value==='Main Godown'?'Dukan':'Main Godown';}
 function saveTrf(){
   var from=R('trf-from').value,to=R('trf-to').value,product=R('trf-prod').value.trim(),qty=parseFloat(R('trf-qty').value)||0;
   if(!product){toast('Select product','error');return;}if(qty<=0){toast('Enter quantity','error');return;}if(from===to){toast('From and To cannot be same','error');return;}
   var isAdm=VT.ud&&VT.ud.role==='admin';loading(true,'Processing...');
-  if(isAdm){
-    updStock([{product:product,qty:qty}],from,'sub');updStock([{product:product,qty:qty}],to,'add');
-    db.collection('approvals').add({type:'transfer',fromLocation:from,toLocation:to,product:product,qty:qty,note:R('trf-note').value,staffId:VT.user.uid,staffName:VT.ud.name,status:'approved',createdAt:FSV.serverTimestamp()}).then(function(){toast('Transfer done! ✅');loading(false);goHome();}).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
-  } else {
-    db.collection('approvals').add({type:'transfer',fromLocation:from,toLocation:to,product:product,qty:qty,note:R('trf-note').value,staffId:VT.user.uid,staffName:VT.ud.name,status:'pending',createdAt:FSV.serverTimestamp()}).then(function(){toast('Transfer request submitted! 📤');loading(false);goHome();}).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
-  }
+  cntNo('trf').then(function(no){
+    var e=R('trf-no');if(e)e.textContent=no;
+    if(isAdm){
+      updStock([{product:product,qty:qty}],from,'sub');updStock([{product:product,qty:qty}],to,'add');
+      return db.collection('approvals').add({type:'transfer',fromLocation:from,toLocation:to,product:product,qty:qty,note:R('trf-note').value,staffId:VT.user.uid,staffName:VT.ud.name,status:'approved',createdAt:FSV.serverTimestamp()}).then(function(){toast('Transfer done! ✅');loading(false);goHome();});
+    } else {
+      return db.collection('approvals').add({type:'transfer',fromLocation:from,toLocation:to,product:product,qty:qty,note:R('trf-note').value,staffId:VT.user.uid,staffName:VT.ud.name,status:'pending',createdAt:FSV.serverTimestamp()}).then(function(){toast('Transfer request submitted! 📤');loading(false);goHome();});
+    }
+  }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 
 // ===== RETURN =====
@@ -1609,10 +1621,13 @@ function saveRet(){
   var custId=ci.dataset.cid,adjMode=getPill('ret-pmr')||'Ledger',total=0;
   items.forEach(function(i){total+=i.incl||0;});
   loading(true,'Saving...');
-  db.collection('returns').add({customerId:custId||'',customerName:ci.value.trim(),items:items,totalCredit:total,adjustment:adjMode,staffId:VT.user.uid,staffName:VT.ud.name,createdAt:FSV.serverTimestamp()}).then(function(){
-    if(adjMode==='Ledger'&&custId){var cust=VT.custs.find(function(c){return c.id===custId;});var newOut=Math.max(0,(cust?cust.outstanding||0:0)-total);db.collection('customers').doc(custId).update({outstanding:newOut});VT.custs=VT.custs.map(function(c){return c.id===custId?Object.assign({},c,{outstanding:newOut}):c;});}
-    var goodItems=items.filter(function(i){return i.condition==='good';});if(goodItems.length)updStock(goodItems,'Main Godown','add');
-    toast('Credit note saved! ✅');loading(false);goHome();
+  cntNo('cr').then(function(no){
+    var crE=R('cr-no');if(crE)crE.textContent=no;
+    return db.collection('returns').add({creditNoteNo:no,customerId:custId||'',customerName:ci.value.trim(),items:items,totalCredit:total,adjustment:adjMode,staffId:VT.user.uid,staffName:VT.ud.name,createdAt:FSV.serverTimestamp()}).then(function(){
+      if(adjMode==='Ledger'&&custId){var cust=VT.custs.find(function(c){return c.id===custId;});var newOut=Math.max(0,(cust?cust.outstanding||0:0)-total);db.collection('customers').doc(custId).update({outstanding:newOut});VT.custs=VT.custs.map(function(c){return c.id===custId?Object.assign({},c,{outstanding:newOut}):c;});}
+      var goodItems=items.filter(function(i){return i.condition==='good';});if(goodItems.length)updStock(goodItems,'Main Godown','add');
+      toast('Credit note saved! ✅');loading(false);goHome();
+    });
   }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 
