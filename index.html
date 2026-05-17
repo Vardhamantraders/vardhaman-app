@@ -926,6 +926,7 @@ function onOpen(id){
   if(id==='s-leave-mgmt') loadLeaveMgmt();
   if(id==='s-staff-mgmt') loadStaffMgmt();
   if(id==='s-cust-ledger'){var t=new Date(),todayStr=t.toISOString().slice(0,10),ms2=new Date(t.getFullYear(),t.getMonth(),1).toISOString().slice(0,10);var cf=R('cl-from');var ct=R('cl-to');if(cf&&!cf.value)cf.value=ms2;if(ct&&!ct.value)ct.value=todayStr;}
+  if(id==='s-purchase') initPur();
   if(id==='s-wa-sends') loadWA();
   if(id==='s-performance') loadPerf();
   if(id==='s-notifs') loadNotifs();
