@@ -1082,21 +1082,21 @@ function cntNo(type){
   var ref=db.collection('counters').doc(type);
   return db.runTransaction(function(tx){
     return tx.get(ref).then(function(snap){
-      var data=snap.exists?snap.data():{count:0,recycled:[]};
-      var recycled=data.recycled||[];
+      var existing=snap.exists?snap.data():{count:0,recycled:[]};
+      var recycled=(existing.recycled||[]).slice();
+      var count=existing.count||0;
       var px={gst:'GST',nongst:'INV',rcp:'RCP',cr:'CR',trf:'TRF'};
       var prefix=px[type]||'DOC';
+      var n;
       if(recycled.length>0){
-        // Use smallest recycled number first
         recycled.sort(function(a,b){return a-b;});
-        var n=recycled.shift();
-        tx.update(ref,{recycled:recycled});
-        return prefix+'-'+yr+'-'+String(n).padStart(3,'0');
+        n=recycled.shift();
+        tx.set(ref,{count:count,recycled:recycled});
       } else {
-        var n=data.count+1;
+        n=count+1;
         tx.set(ref,{count:n,recycled:[]});
-        return prefix+'-'+yr+'-'+String(n).padStart(3,'0');
       }
+      return prefix+'-'+yr+'-'+String(n).padStart(3,'0');
     });
   });
 }
@@ -1832,10 +1832,10 @@ function delInv(id,data,rowEl){
     var num=parseInt(numStr)||0;
     if(num>0){
       db.collection('counters').doc(type).get().then(function(snap){
-        var recycled=snap.exists?(snap.data().recycled||[]):[];
+        var existing=snap.exists?snap.data():{count:0,recycled:[]};
+        var recycled=(existing.recycled||[]).slice();
         if(recycled.indexOf(num)===-1)recycled.push(num);
-        if(snap.exists)db.collection('counters').doc(type).update({recycled:recycled});
-        else db.collection('counters').doc(type).set({count:0,recycled:recycled});
+        db.collection('counters').doc(type).set({count:existing.count||0,recycled:recycled});
       });
     }
     if(rowEl&&rowEl.parentNode)rowEl.parentNode.removeChild(rowEl);
@@ -1880,10 +1880,10 @@ function delRcp(id,custId,amount,rcpNo,rowEl){
       var numStr=rcpNo.split('-').pop();var num=parseInt(numStr)||0;
       if(num>0){
         db.collection('counters').doc('rcp').get().then(function(snap){
-          var recycled=snap.exists?(snap.data().recycled||[]):[];
+          var existing=snap.exists?snap.data():{count:0,recycled:[]};
+          var recycled=(existing.recycled||[]).slice();
           if(recycled.indexOf(num)===-1)recycled.push(num);
-          if(snap.exists)db.collection('counters').doc('rcp').update({recycled:recycled});
-          else db.collection('counters').doc('rcp').set({count:0,recycled:recycled});
+          db.collection('counters').doc('rcp').set({count:existing.count||0,recycled:recycled});
         });
       }
     }
