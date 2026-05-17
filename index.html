@@ -2573,13 +2573,20 @@ function loadLedger(){
   var fromD=new Date(from);fromD.setHours(0,0,0,0);var toD=new Date(to);toD.setHours(23,59,59,999);
   var el=R('cl-body');el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm);">Loading...</div>';
   loading(true,'Loading ledger...');
+  var custName=clCustData?clCustData.name:'';
   Promise.all([
     db.collection('invoices').where('customerId','==',clCustId).limit(500).get(),
     db.collection('receipts').where('customerId','==',clCustId).limit(500).get(),
-    db.collection('returns').where('customerId','==',clCustId).limit(500).get()
+    db.collection('returns').where('customerId','==',clCustId).limit(500).get(),
+    db.collection('invoices').where('customerName','==',custName).limit(500).get()
   ]).then(function(res){
+    // Merge invoices from both queries (by customerId and by customerName)
+    var invMap={};
+    res[0].docs.forEach(function(d){invMap[d.id]=d;});
+    res[3].docs.forEach(function(d){invMap[d.id]=d;});
+    var invDocs=Object.values(invMap);
     var rows=[];
-    res[0].docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:i.type==='gst'?'GST Sale':'Non-GST Sale',ref:i.invoiceNo,invDocId:d.id,invData:i,details:(i.items||[]).map(function(x){return x.product;}).join(', '),debit:i.totalAmount||0,credit:0});});
+    invDocs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:i.type==='gst'?'GST Sale':'Non-GST Sale',ref:i.invoiceNo,invDocId:d.id,invData:i,details:(i.items||[]).map(function(x){return x.product;}).join(', '),debit:i.totalAmount||0,credit:0});});
     res[1].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:'Receipt',ref:r.receiptNo,details:r.paymentMode,debit:0,credit:r.amount||0});});
     res[2].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:'Return',ref:'CR',details:(r.items||[]).map(function(x){return x.product;}).join(', '),debit:0,credit:r.totalCredit||0});});
     rows.sort(function(a,b){return a.time-b.time;});
