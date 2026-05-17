@@ -1083,8 +1083,9 @@ function cntNo(type){
   return db.runTransaction(function(tx){
     return tx.get(ref).then(function(snap){
       var existing=snap.exists?snap.data():{count:0,recycled:[]};
-      var recycled=(existing.recycled||[]).slice();
-      var count=existing.count||0;
+      // Convert ALL recycled values to numbers (Firebase may store as string)
+      var recycled=(existing.recycled||[]).map(function(x){return parseInt(x)||0;}).filter(function(x){return x>0;});
+      var count=parseInt(existing.count)||0;
       var px={gst:'GST',nongst:'INV',rcp:'RCP',cr:'CR',trf:'TRF'};
       var prefix=px[type]||'DOC';
       var n;
@@ -1833,9 +1834,9 @@ function delInv(id,data,rowEl){
     if(num>0){
       db.collection('counters').doc(type).get().then(function(snap){
         var existing=snap.exists?snap.data():{count:0,recycled:[]};
-        var recycled=(existing.recycled||[]).slice();
+        var recycled=(existing.recycled||[]).map(function(x){return parseInt(x)||0;}).filter(function(x){return x>0;});
         if(recycled.indexOf(num)===-1)recycled.push(num);
-        db.collection('counters').doc(type).set({count:existing.count||0,recycled:recycled});
+        db.collection('counters').doc(type).set({count:parseInt(existing.count)||0,recycled:recycled});
       });
     }
     if(rowEl&&rowEl.parentNode)rowEl.parentNode.removeChild(rowEl);
@@ -1881,9 +1882,9 @@ function delRcp(id,custId,amount,rcpNo,rowEl){
       if(num>0){
         db.collection('counters').doc('rcp').get().then(function(snap){
           var existing=snap.exists?snap.data():{count:0,recycled:[]};
-          var recycled=(existing.recycled||[]).slice();
+          var recycled=(existing.recycled||[]).map(function(x){return parseInt(x)||0;}).filter(function(x){return x>0;});
           if(recycled.indexOf(num)===-1)recycled.push(num);
-          db.collection('counters').doc('rcp').set({count:existing.count||0,recycled:recycled});
+          db.collection('counters').doc('rcp').set({count:parseInt(existing.count)||0,recycled:recycled});
         });
       }
     }
@@ -2122,7 +2123,7 @@ function doImport(){
   if(!VT.impData.length){toast('No data to import','error');return;}
   loading(true,'Importing '+VT.impData.length+' customers...');
   var batch=db.batch();
-  VT.impData.forEach(function(c){var ref=db.collection('customers').doc();batch.set(ref,{name:c.name,location:c.location,mobile:c.mobile,gstn:c.gstn,outstanding:c.outstanding,createdAt:FSV.serverTimestamp()});VT.custs.push({id:ref.id,name:c.name,location:c.location,mobile:c.mobile,gstn:c.gstn,outstanding:c.outstanding});});
+  VT.impData.forEach(function(c){var ref=db.collection('customers').doc();batch.set(ref,{name:c.name,location:c.location,mobile:c.mobile,gstn:c.gstn,outstanding:c.outstanding,openingBalance:c.outstanding,createdAt:FSV.serverTimestamp()});VT.custs.push({id:ref.id,name:c.name,location:c.location,mobile:c.mobile,gstn:c.gstn,outstanding:c.outstanding});});
   batch.commit().then(function(){toast(VT.impData.length+' imported! ✅');VT.impData=[];R('imp-prev').style.display='none';R('cust-xlsx').value='';loadCusts();loading(false);}).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 function cancelImport(){VT.impData=[];R('imp-prev').style.display='none';R('cust-xlsx').value='';}
@@ -2492,7 +2493,7 @@ function loadOutLedger(){
     // Get opening balance
     db.collection('customers').doc(outSelCust.id).get().then(function(snap){
       var cData=snap.exists?snap.data():{};
-      var opBal=cData.openingBalance||0;
+      var opBal=typeof cData.openingBalance!=='undefined'?cData.openingBalance:0;
       var tDebit=rows.reduce(function(s,r){return s+r.debit;},0);
       var tCredit=rows.reduce(function(s,r){return s+r.credit;},0);
       var html='<div style="background:linear-gradient(135deg,var(--p),var(--pd));border-radius:14px;padding:14px 16px;margin:0 14px 12px;">';
@@ -2598,7 +2599,7 @@ function loadLedger(){
     res[2].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:'Return',ref:'CR',details:(r.items||[]).map(function(x){return x.product;}).join(', '),debit:0,credit:r.totalCredit||0});});
     rows.sort(function(a,b){return a.time-b.time;});
     loading(false);
-    var opBal=clCustData.openingBalance||0;
+    var opBal=typeof clCustData.openingBalance!=='undefined'?clCustData.openingBalance:0;
     var tDebit=0,tCredit=0;
     rows.forEach(function(r){tDebit+=r.debit;tCredit+=r.credit;});
     // Always show ledger even if no transactions (show opening balance)
