@@ -219,20 +219,20 @@ body{background:#0a1428;}
     </div>
   </div>
   <div class="sb">
-    <div class="mg">
-      <div class="mc"><div class="mi">🧾</div><div class="mv" id="st-inv">0</div><div class="ml">Today Invoices</div></div>
-      <div class="mc"><div class="mi">💰</div><div class="mv" id="st-sal">₹0</div><div class="ml">Today Sales</div></div>
-      <div class="mc"><div class="mi">💵</div><div class="mv" id="st-cash">₹0</div><div class="ml">Cash Collected</div></div>
-      <div class="mc"><div class="mi">⏳</div><div class="mv" id="st-out">₹0</div><div class="ml">Outstanding</div></div>
+    <div style="height:12px;"></div>
+    <div class="slb" style="padding-top:0;">Quick Actions</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 14px 14px;">
+      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:14px 6px;" onclick="goTo('s-sale-type')"><div style="font-size:24px;margin-bottom:4px;">🧾</div><div style="font-size:11px;font-weight:800;color:var(--td);">New Sale</div></div>
+      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:14px 6px;" onclick="startReceipt()"><div style="font-size:24px;margin-bottom:4px;">💰</div><div style="font-size:11px;font-weight:800;color:var(--td);">Receipt</div></div>
+      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:14px 6px;" onclick="goTo('s-return')"><div style="font-size:24px;margin-bottom:4px;">↩️</div><div style="font-size:11px;font-weight:800;color:var(--td);">Return</div></div>
+      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:14px 6px;" onclick="goTo('s-expense')"><div style="font-size:24px;margin-bottom:4px;">💸</div><div style="font-size:11px;font-weight:800;color:var(--td);">Expense</div></div>
+      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:14px 6px;" onclick="goTo('s-transfer')"><div style="font-size:24px;margin-bottom:4px;">🔄</div><div style="font-size:11px;font-weight:800;color:var(--td);">Transfer</div></div>
+      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:14px 6px;" onclick="goTo('s-stock')"><div style="font-size:24px;margin-bottom:4px;">📦</div><div style="font-size:11px;font-weight:800;color:var(--td);">Stock</div></div>
     </div>
-    <div class="slb">Quick Actions</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 14px 14px;">
-      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:18px 8px;" onclick="goTo('s-sale-type')"><div style="font-size:28px;margin-bottom:6px;">🧾</div><div style="font-size:13px;font-weight:800;color:var(--td);">New Sale</div></div>
-      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:18px 8px;" onclick="startReceipt()"><div style="font-size:28px;margin-bottom:6px;">💰</div><div style="font-size:13px;font-weight:800;color:var(--td);">Receipt</div></div>
-      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:18px 8px;" onclick="goTo('s-return')"><div style="font-size:28px;margin-bottom:6px;">↩️</div><div style="font-size:13px;font-weight:800;color:var(--td);">Return</div></div>
-      <div class="card" style="margin:0;cursor:pointer;text-align:center;padding:18px 8px;" onclick="goTo('s-expense')"><div style="font-size:28px;margin-bottom:6px;">💸</div><div style="font-size:13px;font-weight:800;color:var(--td);">Expense</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:0 14px;margin-bottom:4px;">
+      <div class="slb" style="padding:0;margin:0;">Today Activity</div>
+      <button onclick="exportTodayActivity()" style="border:none;background:var(--p);color:#fff;border-radius:10px;padding:6px 12px;font-size:11px;font-weight:800;cursor:pointer;font-family:Nunito,sans-serif;">📤 Export</button>
     </div>
-    <div class="slb">Today Activity</div>
     <div class="card" id="st-act"><div class="empty"><div class="eic">📋</div><div class="et">No activity today</div></div></div>
   </div>
   <div class="bn">
@@ -624,6 +624,7 @@ body{background:#0a1428;}
       <div class="lr" style="cursor:pointer;" onclick="openRpt('Stock Report','stock-report')"><div style="display:flex;align-items:center;gap:12px;"><div class="lric" style="background:var(--sl);">📦</div><div style="font-size:13px;font-weight:700;color:var(--td);">Stock Report</div></div><span style="color:var(--p);font-size:12px;font-weight:700;">Export ›</span></div>
       <div class="lr" style="cursor:pointer;" onclick="openRpt('Day Book','daybook')"><div style="display:flex;align-items:center;gap:12px;"><div class="lric" style="background:var(--wl);">📋</div><div style="font-size:13px;font-weight:700;color:var(--td);">Day Book</div></div><span style="color:var(--p);font-size:12px;font-weight:700;">Export ›</span></div>
       <div class="lr" style="cursor:pointer;" onclick="openRpt('Staff Performance','staff-perf')"><div style="display:flex;align-items:center;gap:12px;"><div class="lric" style="background:var(--pl);">👥</div><div style="font-size:13px;font-weight:700;color:var(--td);">Staff Performance</div></div><span style="color:var(--p);font-size:12px;font-weight:700;">Export ›</span></div>
+      <div class="lr" style="cursor:pointer;" onclick="goTo('s-cust-ledger')"><div style="display:flex;align-items:center;gap:12px;"><div class="lric" style="background:var(--wl);">📒</div><div><div style="font-size:13px;font-weight:700;color:var(--td);">Customer Ledger</div><div style="font-size:11px;color:var(--tm);font-weight:600;">Full account statement</div></div></div><span style="color:var(--p);font-size:12px;font-weight:700;">View ›</span></div>
     </div>
   </div>
   <div class="bn">
@@ -651,8 +652,11 @@ body{background:#0a1428;}
       <div class="lr" style="cursor:pointer;" onclick="goTo('s-stock')"><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:22px;">📦</span><div style="font-size:13px;font-weight:700;color:var(--td);">Stock Management</div></div><span style="color:var(--p);font-size:18px;">›</span></div>
       <div class="lr" style="cursor:pointer;" onclick="goTo('s-biz-settings')"><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:22px;">⚙️</span><div style="font-size:13px;font-weight:700;color:var(--td);">Business Settings</div></div><span style="color:var(--p);font-size:18px;">›</span></div>
     </div>
-    <div class="slb">Staff Accounts</div>
-    <div class="card" id="ap-staff"><div class="empty"><div class="eic">👥</div><div class="et">Loading...</div></div></div>
+    <div class="slb">Staff Management</div>
+    <div class="card">
+      <div class="lr" style="cursor:pointer;" onclick="goTo('s-leave-mgmt')"><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:22px;">🏖️</span><div style="font-size:13px;font-weight:700;color:var(--td);">Leave Management</div></div><span style="color:var(--p);font-size:18px;">›</span></div>
+      <div class="lr" style="cursor:pointer;" onclick="goTo('s-staff-mgmt')"><div style="display:flex;align-items:center;gap:12px;"><span style="font-size:22px;">👥</span><div style="font-size:13px;font-weight:700;color:var(--td);">Staff Accounts</div></div><span style="color:var(--p);font-size:18px;">›</span></div>
+    </div>
     <div class="bw" style="margin-top:8px;"><button class="btn-o" style="color:var(--d);border-color:var(--d);" onclick="doLogout()">🚪 Logout</button></div>
   </div>
   <div class="bn">
@@ -739,7 +743,60 @@ body{background:#0a1428;}
 
 </div><!-- end #app -->
 
-<!-- REPORT POPUP — outside #app so it is never clipped -->
+<!-- ===== LEAVE MANAGEMENT (ADMIN ONLY) ===== -->
+<div class="sc" id="s-leave-mgmt">
+  <div class="hd"><div class="hr"><button class="bk" onclick="goBack()">←</button><div class="ht">Leave Management</div></div></div>
+  <div class="sb">
+    <div style="height:12px;"></div>
+    <div class="slb" style="padding-top:0;">Pending Approvals</div>
+    <div class="card" id="lm-pending"><div class="empty"><div class="eic">✅</div><div class="et">No pending leaves</div></div></div>
+
+    <div class="slb">Leave History</div>
+    <div class="tc2" style="margin-bottom:12px;">
+      <div><div class="fl">From Date</div><div class="fi" style="border-color:var(--p);"><input type="date" id="lm-from" style="border:none;outline:none;font-family:Nunito,sans-serif;font-size:13px;font-weight:700;color:var(--td);width:100%;background:transparent;"/></div></div>
+      <div><div class="fl">To Date</div><div class="fi" style="border-color:var(--p);"><input type="date" id="lm-to" style="border:none;outline:none;font-family:Nunito,sans-serif;font-size:13px;font-weight:700;color:var(--td);width:100%;background:transparent;"/></div></div>
+    </div>
+    <div class="bwr"><button class="btn" style="flex:1;" onclick="loadLmHistory()">🔍 Search</button><button class="btn-o" style="flex:1;" onclick="exportLeaves()">📤 Export Excel</button></div>
+    <div class="card" id="lm-history"><div class="empty"><div class="eic">📋</div><div class="et">Select date range and search</div></div></div>
+
+    <div class="slb">Staff Summary</div>
+    <div class="tc2" style="margin-bottom:12px;">
+      <div><div class="fl">From Date</div><div class="fi" style="border-color:var(--p);"><input type="date" id="lms-from" style="border:none;outline:none;font-family:Nunito,sans-serif;font-size:13px;font-weight:700;color:var(--td);width:100%;background:transparent;"/></div></div>
+      <div><div class="fl">To Date</div><div class="fi" style="border-color:var(--p);"><input type="date" id="lms-to" style="border:none;outline:none;font-family:Nunito,sans-serif;font-size:13px;font-weight:700;color:var(--td);width:100%;background:transparent;"/></div></div>
+    </div>
+    <div class="bw"><button class="btn" onclick="loadLmSummary()">🔍 Load Summary</button></div>
+    <div class="card" id="lm-summary"><div class="empty"><div class="eic">👥</div><div class="et">Select date range and load</div></div></div>
+  </div>
+</div>
+
+<!-- ===== STAFF MANAGEMENT (ADMIN ONLY) ===== -->
+<div class="sc" id="s-staff-mgmt">
+  <div class="hd"><div class="hr"><button class="bk" onclick="goBack()">←</button><div class="ht">Staff Accounts</div></div></div>
+  <div class="sb">
+    <div style="height:12px;"></div>
+    <div class="ib or" style="display:flex;gap:10px;align-items:flex-start;"><span style="font-size:18px;flex-shrink:0;">ℹ️</span><div style="font-size:12px;color:var(--w);font-weight:600;">Disable login or reset password for staff members.</div></div>
+    <div class="card" id="sm-list"><div class="empty"><div class="eic">👥</div><div class="et">Loading...</div></div></div>
+  </div>
+</div>
+
+
+<!-- ===== CUSTOMER LEDGER ===== -->
+<div class="sc" id="s-cust-ledger">
+  <div class="hd"><div class="hr"><button class="bk" onclick="goBack()">←</button><div class="ht">Customer Ledger</div></div></div>
+  <div class="sb">
+    <div style="height:12px;"></div>
+    <div class="fg"><div class="fl">Select Customer *</div>
+      <div class="fi" style="border-color:var(--p);position:relative;" id="clcw"><span class="fic">👤</span><input type="text" id="cl-cu" placeholder="Type customer name..." oninput="cSearch('cl-cu','clcw',onCLCu)"/></div>
+    </div>
+    <div class="tc2" style="margin-bottom:12px;">
+      <div><div class="fl">From Date</div><div class="fi" style="border-color:var(--p);"><input type="date" id="cl-from" style="border:none;outline:none;font-family:Nunito,sans-serif;font-size:13px;font-weight:700;color:var(--td);width:100%;background:transparent;"/></div></div>
+      <div><div class="fl">To Date</div><div class="fi" style="border-color:var(--p);"><input type="date" id="cl-to" style="border:none;outline:none;font-family:Nunito,sans-serif;font-size:13px;font-weight:700;color:var(--td);width:100%;background:transparent;"/></div></div>
+    </div>
+    <div class="bwr"><button class="btn" style="flex:1;" onclick="loadLedger()">🔍 Load Ledger</button><button class="btn-o" style="flex:1;" onclick="exportLedger('excel')">📊 Excel</button><button class="btn-o" style="flex:0.8;" onclick="exportLedger('pdf')">📄 PDF</button></div>
+    <div id="cl-body"><div class="empty" style="margin-top:20px;"><div class="eic">📒</div><div class="et">Select customer and date range</div></div></div>
+  </div>
+</div>
+
 <div id="rpt-pop" class="pop"><div class="pbox">
   <div style="font-size:16px;font-weight:800;color:var(--td);margin-bottom:2px;" id="rpt-title">Export Report</div>
   <div style="font-size:12px;color:var(--tm);font-weight:600;margin-bottom:14px;" id="rpt-sub">Select date range &amp; format</div>
@@ -866,7 +923,9 @@ function onOpen(id){
   if(id==='s-leave') initLv();
   if(id==='s-transfer') initTrf();
   if(id==='s-return'){VT.retItems=[];R('ret-items').innerHTML='';R('ret-total').textContent='₹0';R('ret-cu').value='';delete R('ret-cu').dataset.cid;cntNo('cr').then(function(no){var e=R('cr-no');if(e)e.textContent=no;});}
-  if(id==='s-purchase') initPur();
+  if(id==='s-leave-mgmt') loadLeaveMgmt();
+  if(id==='s-staff-mgmt') loadStaffMgmt();
+  if(id==='s-cust-ledger'){var t=new Date(),todayStr=t.toISOString().slice(0,10),ms2=new Date(t.getFullYear(),t.getMonth(),1).toISOString().slice(0,10);var cf=R('cl-from');var ct=R('cl-to');if(cf&&!cf.value)cf.value=ms2;if(ct&&!ct.value)ct.value=todayStr;}
   if(id==='s-wa-sends') loadWA();
   if(id==='s-performance') loadPerf();
   if(id==='s-notifs') loadNotifs();
@@ -1118,18 +1177,62 @@ function loadStDash(){
   var ud=VT.ud;
   var av=R('st-av');if(av)av.textContent=ud.initials||'ST';
   setDates();
-  var out=0;VT.custs.forEach(function(c){out+=c.outstanding||0;});
-  var eo=R('st-out');if(eo)eo.textContent=fmt(out);
-  db.collection('invoices').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(50).get().then(function(snap){
-    var today=td(),inv=0,sal=0,cash=0,rows=[];
-    snap.docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=today){inv++;sal+=i.totalAmount||0;if(i.paymentMode==='Cash')cash+=i.totalAmount||0;rows.push(i);}});
-    var e1=R('st-inv');if(e1)e1.textContent=inv;
-    var e2=R('st-sal');if(e2)e2.textContent=fmt(sal);
-    var e3=R('st-cash');if(e3)e3.textContent=fmt(cash);
-    var act=R('st-act');
-    if(act){if(!rows.length){act.innerHTML='<div class="empty"><div class="eic">📋</div><div class="et">No activity today</div></div>';return;}
-    act.innerHTML=rows.slice(0,5).map(function(i){return '<div class="lr"><div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+i.customerName+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+i.invoiceNo+' · '+(i.totalBoxes||0)+' boxes</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:800;color:var(--td);">'+fmt(i.totalAmount)+'</div><span class="bdg '+(i.paymentMode==='Credit'?'br':i.paymentMode==='Bank'?'bb':'bg')+'">'+i.paymentMode+'</span></div></div>';}).join('');}
-  }).catch(function(){});
+  // Load today activity — all 4 types
+  loadTodayActivity();
+}
+
+function loadTodayActivity(){
+  var act=R('st-act');if(!act)return;
+  var today=td();
+  var promises=[
+    db.collection('invoices').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get(),
+    db.collection('receipts').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get(),
+    db.collection('approvals').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get()
+  ];
+  Promise.all(promises).then(function(res){
+    var rows=[];
+    // Sales
+    res[0].docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=today){var t=dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});rows.push({time:dt,html:'<div class="lr"><div style="width:36px;height:36px;border-radius:10px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🧾</div><div style="flex:1;padding-left:10px;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+i.customerName+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+i.invoiceNo+' · '+(i.totalBoxes||0)+' boxes · '+t+'</div></div><div style="text-align:right;"><div style="font-size:13px;font-weight:800;color:var(--td);">'+fmt(i.totalAmount)+'</div><span class="bdg '+(i.paymentMode==='Credit'?'br':i.paymentMode==='Bank'?'bb':'bg')+'">'+i.paymentMode+'</span></div></div>'});} });
+    // Receipts
+    res[1].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=today){var t=dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});rows.push({time:dt,html:'<div class="lr"><div style="width:36px;height:36px;border-radius:10px;background:var(--sl);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">💰</div><div style="flex:1;padding-left:10px;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+r.customerName+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+r.receiptNo+' · Receipt · '+t+'</div></div><div style="font-size:13px;font-weight:800;color:var(--s);">'+fmt(r.amount)+'</div></div>'});} });
+    // Expenses and Transfers
+    res[2].docs.forEach(function(d){var a=d.data();var dt=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate():new Date(0);if(dt>=today){var t=dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      if(a.type==='expense')rows.push({time:dt,html:'<div class="lr"><div style="width:36px;height:36px;border-radius:10px;background:var(--wl);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">💸</div><div style="flex:1;padding-left:10px;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+a.expType+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+(a.description||'')+'· '+t+' · <span class="bdg '+(a.status==='approved'?'bg':a.status==='rejected'?'br':'bo')+'">'+a.status+'</span></div></div><div style="font-size:13px;font-weight:800;color:var(--w);">'+fmt(a.amount)+'</div></div>'});
+      if(a.type==='transfer')rows.push({time:dt,html:'<div class="lr"><div style="width:36px;height:36px;border-radius:10px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🔄</div><div style="flex:1;padding-left:10px;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+a.product+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+a.fromLocation+' → '+a.toLocation+' · '+(a.qty||0)+' boxes · '+t+'</div></div><span class="bdg '+(a.status==='approved'?'bg':a.status==='rejected'?'br':'bo')+'">'+a.status+'</span></div>'});
+    }});
+    if(!rows.length){act.innerHTML='<div class="empty"><div class="eic">📋</div><div class="et">No activity today</div></div>';return;}
+    rows.sort(function(a,b){return b.time-a.time;});
+    act.innerHTML=rows.map(function(r){return r.html;}).join('');
+  }).catch(function(e){act.innerHTML='<div class="empty"><div class="eic">📋</div><div class="et">Error loading activity</div></div>';});
+}
+
+function exportTodayActivity(){
+  var today=td();
+  var promises=[
+    db.collection('invoices').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get(),
+    db.collection('receipts').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get(),
+    db.collection('approvals').where('staffId','==',VT.user.uid).orderBy('createdAt','desc').limit(100).get()
+  ];
+  loading(true,'Preparing export...');
+  Promise.all(promises).then(function(res){
+    var wb=XLSX.utils.book_new();
+    // Sheet 1 Sales
+    var s1=[['Time','Invoice No','Customer Name','Type','Product Name','Per Box Price','Amount','Boxes','Payment Mode']];
+    res[0].docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=today)(i.items||[]).forEach(function(item){s1.push([dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),i.invoiceNo,i.customerName,i.type==='gst'?'GST':'Non-GST',item.product||'',item.rate||0,item.incl||item.amount||0,item.qty||0,i.paymentMode]);});});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s1),'Sales');
+    // Sheet 2 Receipts
+    var s2=[['Time','Receipt No','Customer Name','Amount Received','Payment Mode']];
+    res[1].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=today)s2.push([dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),r.receiptNo,r.customerName,r.amount||0,r.paymentMode]);});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s2),'Receipts');
+    // Sheet 3 Expenses
+    var s3=[['Time','Expense Type','Description','Amount','Payment Mode','Status']];
+    var s4=[['Time','Product','From Godown','To Godown','Qty (Boxes)','Status']];
+    res[2].docs.forEach(function(d){var a=d.data();var dt=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate():new Date(0);if(dt>=today){var t=dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});if(a.type==='expense')s3.push([t,a.expType,a.description||'',a.amount||0,a.paymentMode||'',a.status]);if(a.type==='transfer')s4.push([t,a.product,a.fromLocation,a.toLocation,a.qty||0,a.status]);}});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s3),'Expenses');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s4),'Transfers');
+    XLSX.writeFile(wb,VT.ud.name+'_Activity_'+new Date().toISOString().slice(0,10)+'.xlsx');
+    toast('Exported! ✅');loading(false);
+  }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
 }
 
 // ===== ADMIN DASHBOARD =====
@@ -1639,16 +1742,58 @@ function dlReport(format){
 
   if(key==='daily-sales'||key==='monthly-sales'){
     db.collection('invoices').orderBy('createdAt','desc').limit(2000).get().then(function(snap){
-      var rows=[['Invoice No','Date','Customer','Type','Boxes','Taxable (₹)','CGST (₹)','SGST (₹)','Total (₹)','Payment','Staff']];
-      snap.docs.forEach(function(d){var i=d.data();if(inRange(i.createdAt))rows.push([i.invoiceNo,tsD(i.createdAt),i.customerName,i.type==='gst'?'GST':'Non-GST',i.totalBoxes||0,i.taxableAmount||0,i.cgst||0,i.sgst||0,i.totalAmount||0,i.paymentMode,i.staffName]);});
-      if(rows.length===1){toast('No data in selected date range','error');loading(false);return;}
-      gen(rows);
+      var gstRows=[['Date','Invoice No','Customer Name','Type','Product Name','Per Box Price (₹)','Taxable Value (₹)','CGST (₹)','SGST (₹)','Total Value (₹)','Boxes']];
+      var ngRows=[['Date','Invoice No','Customer Name','Type','Product Name','Per Box Price (₹)','Total Amount (₹)','Boxes']];
+      var gstTot={tax:0,cgst:0,sgst:0,total:0,box:0,inv:new Set()};
+      var ngTot={total:0,box:0,inv:new Set()};
+      snap.docs.forEach(function(d){
+        var i=d.data();if(!inRange(i.createdAt))return;
+        var itemCount=(i.items||[]).length||1;
+        (i.items||[]).forEach(function(item){
+          var perBox=item.rate||0;
+          if(i.type==='gst'){
+            var taxable=(item.incl||0)/1.05,cgst=(item.incl||0-taxable)/2;
+            gstRows.push([tsD(i.createdAt),i.invoiceNo,i.customerName,'GST',item.product||'',perBox,Math.round(taxable),Math.round(cgst),Math.round(cgst),item.incl||0,item.qty||0]);
+            gstTot.tax+=taxable;gstTot.cgst+=cgst;gstTot.sgst+=cgst;gstTot.total+=item.incl||0;gstTot.box+=item.qty||0;gstTot.inv.add(i.invoiceNo);
+          } else {
+            ngRows.push([tsD(i.createdAt),i.invoiceNo,i.customerName,'Non-GST',item.product||'',perBox,item.amount||0,item.qty||0]);
+            ngTot.total+=item.amount||0;ngTot.box+=item.qty||0;ngTot.inv.add(i.invoiceNo);
+          }
+        });
+      });
+      // Add totals
+      gstRows.push(['','','','','','TOTAL',Math.round(gstTot.tax),Math.round(gstTot.cgst),Math.round(gstTot.sgst),gstTot.total,gstTot.box]);
+      ngRows.push(['','','','','','TOTAL',ngTot.total,ngTot.box]);
+      // Summary sheet
+      var sumRows=[['','GST Sales','Non-GST Sales','Grand Total'],['Total Invoices',gstTot.inv.size,ngTot.inv.size,gstTot.inv.size+ngTot.inv.size],['Total Boxes',gstTot.box,ngTot.box,gstTot.box+ngTot.box],['Total Amount',gstTot.total,ngTot.total,gstTot.total+ngTot.total],['Taxable Value',Math.round(gstTot.tax),'—',Math.round(gstTot.tax)],['Total CGST',Math.round(gstTot.cgst),'—',Math.round(gstTot.cgst)],['Total SGST',Math.round(gstTot.sgst),'—',Math.round(gstTot.sgst)]];
+      if(format==='excel'){
+        var wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(gstRows),'GST Sales');
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ngRows),'Non-GST Sales');
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sumRows),'Summary');
+        XLSX.writeFile(wb,'Daily_Sales_'+fromVal+'_to_'+toVal+'.xlsx');
+        toast('Excel downloaded! ✅');loading(false);
+      } else {
+        var allRows=[['Date','Invoice No','Customer','Type','Product','Per Box Price','Amount','Boxes']];
+        gstRows.slice(1).forEach(function(r){allRows.push(r.slice(0,4).concat([r[4],r[5],r[9],r[10]]));});
+        ngRows.slice(1).forEach(function(r){allRows.push(r);});
+        makeDoc(allRows,'Daily Sales ('+fromVal+' to '+toVal+')',format);
+      }
     }).catch(function(){toast('Error fetching data','error');loading(false);});
   } else if(key==='gst-report'){
     db.collection('invoices').where('type','==','gst').orderBy('createdAt','desc').limit(2000).get().then(function(snap){
-      var rows=[['Invoice No','Date','Customer','Buyer GSTN','Seller GSTN','Taxable (₹)','CGST (₹)','SGST (₹)','Total (₹)']];
-      snap.docs.forEach(function(d){var i=d.data();if(inRange(i.createdAt))rows.push([i.invoiceNo,tsD(i.createdAt),i.customerName,i.customerGstn||'',i.sellerGstn||'',i.taxableAmount||0,i.cgst||0,i.sgst||0,i.totalAmount||0]);});
-      if(rows.length===1){toast('No GST invoices in selected range','error');loading(false);return;}
+      var rows=[['Sr No','Date','Invoice No','Party Name','Customer GSTN','Product Name','Per Box Price (₹)','Taxable Value (₹)','CGST (₹)','SGST (₹)','Total Value (₹)','Boxes Sold']];
+      var sr=1,totTax=0,totCgst=0,totSgst=0,totVal=0,totBox=0;
+      snap.docs.forEach(function(d){
+        var i=d.data();if(!inRange(i.createdAt))return;
+        (i.items||[]).forEach(function(item){
+          var taxable=(item.incl||0)/1.05,cgst=((item.incl||0)-taxable)/2,total=item.incl||0;
+          rows.push([sr++,tsD(i.createdAt),i.invoiceNo,i.customerName,i.customerGstn||'',item.product||'',item.rate||0,Math.round(taxable),Math.round(cgst),Math.round(cgst),total,item.qty||0]);
+          totTax+=taxable;totCgst+=cgst;totSgst+=cgst;totVal+=total;totBox+=item.qty||0;
+        });
+      });
+      rows.push(['','','','','','','TOTAL',Math.round(totTax),Math.round(totCgst),Math.round(totSgst),totVal,totBox]);
+      if(rows.length===2){toast('No GST invoices in selected range','error');loading(false);return;}
       gen(rows);
     }).catch(function(){toast('Error fetching data','error');loading(false);});
   } else if(key==='outstanding'){
@@ -1666,12 +1811,40 @@ function dlReport(format){
       makeDoc(rows,'Stock Report',format);
     }).catch(function(){toast('Error fetching data','error');loading(false);});
   } else if(key==='daybook'){
-    Promise.all([db.collection('invoices').orderBy('createdAt','desc').limit(2000).get(),db.collection('receipts').orderBy('createdAt','desc').limit(2000).get()]).then(function(res){
-      var rows=[['Type','Number','Date','Customer','Amount (₹)','Payment','Staff']];
-      res[0].docs.forEach(function(d){var i=d.data();if(inRange(i.createdAt))rows.push(['Sale',i.invoiceNo,tsD(i.createdAt),i.customerName,i.totalAmount||0,i.paymentMode,i.staffName]);});
-      res[1].docs.forEach(function(d){var r=d.data();if(inRange(r.createdAt))rows.push(['Receipt',r.receiptNo,tsD(r.createdAt),r.customerName,r.amount||0,r.paymentMode,r.staffName]);});
-      if(rows.length===1){toast('No data in selected date range','error');loading(false);return;}
-      gen(rows);
+    Promise.all([
+      db.collection('invoices').orderBy('createdAt','desc').limit(2000).get(),
+      db.collection('receipts').orderBy('createdAt','desc').limit(2000).get(),
+      db.collection('approvals').orderBy('createdAt','desc').limit(2000).get(),
+      db.collection('returns').orderBy('createdAt','desc').limit(2000).get(),
+      db.collection('purchases').orderBy('createdAt','desc').limit(2000).get()
+    ]).then(function(res){
+      var wb=XLSX.utils.book_new();
+      // Sheet 1 Sales
+      var s1=[['Date','Invoice No','Customer Name','Type','Product Name','Per Box Price (₹)','Amount (₹)','Boxes','Payment Mode','Created By']];
+      res[0].docs.forEach(function(d){var i=d.data();if(!inRange(i.createdAt))return;(i.items||[]).forEach(function(item){s1.push([tsD(i.createdAt),i.invoiceNo,i.customerName,i.type==='gst'?'GST':'Non-GST',item.product||'',item.rate||0,item.incl||item.amount||0,item.qty||0,i.paymentMode,i.staffName]);});});
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s1),'Sales');
+      // Sheet 2 Receipts
+      var s2=[['Date','Receipt No','Customer Name','Amount Received (₹)','Payment Mode','Prev Outstanding (₹)','Balance Outstanding (₹)','Created By']];
+      res[1].docs.forEach(function(d){var r=d.data();if(inRange(r.createdAt))s2.push([tsD(r.createdAt),r.receiptNo,r.customerName,r.amount||0,r.paymentMode,r.previousOutstanding||0,r.balanceOutstanding||0,r.staffName]);});
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s2),'Receipts');
+      // Sheet 3 Expenses
+      var s3=[['Date','Expense Type','Description','Amount (₹)','Payment Mode','Status','Created By']];
+      res[2].docs.forEach(function(d){var a=d.data();if(a.type==='expense'&&inRange(a.createdAt))s3.push([tsD(a.createdAt),a.expType,a.description||'',a.amount||0,a.paymentMode||'',a.status,a.staffName]);});
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s3),'Expenses');
+      // Sheet 4 Transfers
+      var s4=[['Date','Product','From Godown','To Godown','Qty (Boxes)','Status','Created By']];
+      res[2].docs.forEach(function(d){var a=d.data();if(a.type==='transfer'&&inRange(a.createdAt))s4.push([tsD(a.createdAt),a.product,a.fromLocation,a.toLocation,a.qty||0,a.status,a.staffName]);});
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s4),'Transfers');
+      // Sheet 5 Returns
+      var s5=[['Date','Customer Name','Product Name','Qty Returned','Rate (₹)','Amount (₹)','Condition','Adjustment','Created By']];
+      res[3].docs.forEach(function(d){var r=d.data();if(!inRange(r.createdAt))return;(r.items||[]).forEach(function(item){s5.push([tsD(r.createdAt),r.customerName,item.product||'',item.qty||0,item.rate||0,item.incl||0,item.condition||'',r.adjustment||'',r.staffName]);});});
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s5),'Goods Return');
+      // Sheet 6 Purchases
+      var s6=[['Date','Bill No','Supplier Name','Type','Product Name','Per Box Price (₹)','Qty (Boxes)','Base Amount (₹)','GST %','GST Amount (₹)','Total Amount (₹)','Payment Mode','Created By']];
+      res[4].docs.forEach(function(d){var p=d.data();if(!inRange(p.createdAt))return;(p.items||[]).forEach(function(item){s6.push([tsD(p.createdAt),p.purchaseNo,p.supplier,p.purchaseType==='gst'?'GST':'Non-GST',item.product||'',item.rate||0,item.qty||0,item.baseAmount||item.amount||0,item.gstRate||'',item.gstAmount||'',item.amount||0,p.paymentMode,p.staffName]);});});
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s6),'Purchases');
+      if(format==='excel'){XLSX.writeFile(wb,'DayBook_'+fromVal+'_to_'+toVal+'.xlsx');toast('Day Book exported! ✅');loading(false);}
+      else{var allRows=[['Date','Type','Details','Amount','Created By']];s1.slice(1).forEach(function(r){allRows.push([r[0],'Sale',r[2]+' · '+r[4],r[6],r[9]]);});s2.slice(1).forEach(function(r){allRows.push([r[0],'Receipt',r[2],r[3],r[7]]);});s3.slice(1).forEach(function(r){allRows.push([r[0],'Expense',r[1]+': '+r[2],r[3],r[6]]);});makeDoc(allRows,'Day Book ('+fromVal+' to '+toVal+')',format);}
     }).catch(function(){toast('Error fetching data','error');loading(false);});
   } else if(key==='staff-perf'){
     db.collection('invoices').orderBy('createdAt','desc').limit(2000).get().then(function(snap){
@@ -1823,7 +1996,175 @@ function loadStaffList(){
   }).catch(function(){});
 }
 
-console.log('%c✅ Vardhaman Traders v4.1 Ready!','color:green;font-size:14px;font-weight:bold;');
+// ===== LEAVE MANAGEMENT =====
+function loadLeaveMgmt(){
+  var today=new Date(),todayStr=today.toISOString().slice(0,10);
+  var mStart=new Date(today.getFullYear(),today.getMonth(),1).toISOString().slice(0,10);
+  var lf=R('lm-from');var lt=R('lm-to');var lsf=R('lms-from');var lst=R('lms-to');
+  if(lf&&!lf.value)lf.value=mStart;if(lt&&!lt.value)lt.value=todayStr;
+  if(lsf&&!lsf.value)lsf.value=mStart;if(lst&&!lst.value)lst.value=todayStr;
+  // Load pending
+  db.collection('approvals').where('type','==','leave').where('status','==','pending').get().then(function(snap){
+    var el=R('lm-pending');if(!el)return;
+    if(snap.empty){el.innerHTML='<div class="empty"><div class="eic">✅</div><div class="et">No pending leaves</div></div>';return;}
+    el.innerHTML='';snap.docs.forEach(function(d){buildAppRow(d,el,function(){loadLeaveMgmt();});});
+  }).catch(function(){});
+}
+
+function loadLmHistory(){
+  var from=R('lm-from').value,to=R('lm-to').value;
+  if(!from||!to){toast('Select date range','error');return;}
+  var fromD=new Date(from);fromD.setHours(0,0,0,0);var toD=new Date(to);toD.setHours(23,59,59,999);
+  var el=R('lm-history');el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm);">Loading...</div>';
+  db.collection('approvals').where('type','==','leave').orderBy('createdAt','desc').limit(500).get().then(function(snap){
+    var rows=snap.docs.filter(function(d){var dt=d.data().createdAt&&d.data().createdAt.toDate?d.data().createdAt.toDate():new Date(0);return dt>=fromD&&dt<=toD;});
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="eic">🏖️</div><div class="et">No leaves in this range</div></div>';return;}
+    el.innerHTML=rows.map(function(d){var l=d.data();var bdg=l.status==='approved'?'<span class="bdg bg">✅ Approved</span>':l.status==='rejected'?'<span class="bdg br">❌ Rejected</span>':'<span class="bdg bo">⏳ Pending</span>';return '<div class="lr" style="flex-wrap:wrap;gap:6px;"><div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+l.staffName+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+(l.fromDate||'')+' → '+(l.toDate||'')+' ('+l.days+' days)</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+(l.description||'')+'</div></div>'+bdg+'</div>';}).join('');
+  }).catch(function(e){toast('Error: '+e.message,'error');});
+}
+
+function loadLmSummary(){
+  var from=R('lms-from').value,to=R('lms-to').value;
+  if(!from||!to){toast('Select date range','error');return;}
+  var fromD=new Date(from);fromD.setHours(0,0,0,0);var toD=new Date(to);toD.setHours(23,59,59,999);
+  var el=R('lm-summary');el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm);">Loading...</div>';
+  db.collection('approvals').where('type','==','leave').orderBy('createdAt','desc').limit(500).get().then(function(snap){
+    var map={};
+    snap.docs.forEach(function(d){var l=d.data();var dt=l.createdAt&&l.createdAt.toDate?l.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD){if(!map[l.staffName])map[l.staffName]={name:l.staffName,total:0,days:0,approved:0,rejected:0,pending:0};map[l.staffName].total++;map[l.staffName].days+=l.days||0;if(l.status==='approved')map[l.staffName].approved+=l.days||0;else if(l.status==='rejected')map[l.staffName].rejected+=l.days||0;else map[l.staffName].pending+=l.days||0;}});
+    var arr=Object.values(map);
+    if(!arr.length){el.innerHTML='<div class="empty"><div class="eic">👥</div><div class="et">No leave data in this range</div></div>';return;}
+    el.innerHTML='<div style="overflow-x:auto;"><table class="tbl"><thead><tr><th>Staff</th><th>Applications</th><th>Total Days</th><th>Approved</th><th>Rejected</th><th>Pending</th></tr></thead><tbody>'+arr.map(function(s){return '<tr><td style="font-weight:700;">'+s.name+'</td><td>'+s.total+'</td><td>'+s.days+'</td><td style="color:var(--s);font-weight:700;">'+s.approved+'</td><td style="color:var(--d);font-weight:700;">'+s.rejected+'</td><td style="color:var(--w);font-weight:700;">'+s.pending+'</td></tr>';}).join('')+'</tbody></table></div>';
+  }).catch(function(e){toast('Error: '+e.message,'error');});
+}
+
+function exportLeaves(){
+  var from=R('lm-from').value,to=R('lm-to').value;
+  if(!from||!to){toast('Select date range first','error');return;}
+  var fromD=new Date(from);fromD.setHours(0,0,0,0);var toD=new Date(to);toD.setHours(23,59,59,999);
+  loading(true,'Generating...');
+  db.collection('approvals').where('type','==','leave').orderBy('createdAt','desc').limit(500).get().then(function(snap){
+    var wb=XLSX.utils.book_new();
+    var s1=[['Sr No','Staff Name','From Date','To Date','Total Days','Reason','Status','Applied On']];
+    var map={};
+    var sr=1;
+    snap.docs.forEach(function(d){var l=d.data();var dt=l.createdAt&&l.createdAt.toDate?l.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD){s1.push([sr++,l.staffName,l.fromDate||'',l.toDate||'',l.days||0,l.description||'',l.status,tsD(l.createdAt)]);if(!map[l.staffName])map[l.staffName]={name:l.staffName,total:0,days:0,approved:0,rejected:0,pending:0};map[l.staffName].total++;map[l.staffName].days+=l.days||0;if(l.status==='approved')map[l.staffName].approved+=l.days||0;else if(l.status==='rejected')map[l.staffName].rejected+=l.days||0;else map[l.staffName].pending+=l.days||0;}});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s1),'Leave Detail');
+    var s2=[['Staff Name','Total Applications','Total Days','Approved Days','Rejected Days','Pending Days']];
+    Object.values(map).forEach(function(s){s2.push([s.name,s.total,s.days,s.approved,s.rejected,s.pending]);});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(s2),'Staff Summary');
+    XLSX.writeFile(wb,'Leave_Report_'+from+'_to_'+to+'.xlsx');
+    toast('Exported! ✅');loading(false);
+  }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
+}
+
+// ===== STAFF MANAGEMENT =====
+function loadStaffMgmt(){
+  var el=R('sm-list');if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm);">Loading...</div>';
+  db.collection('users').get().then(function(snap){
+    if(snap.empty){el.innerHTML='<div class="empty"><div class="eic">👥</div><div class="et">No staff found</div></div>';return;}
+    el.innerHTML='';
+    snap.docs.forEach(function(d){
+      var u=d.data();
+      if(u.role==='admin')return; // Skip admin
+      var row=document.createElement('div');row.className='lr';row.style.flexWrap='wrap';row.style.gap='8px';
+      var status=u.disabled?'🔴 Disabled':'🟢 Active';
+      row.innerHTML='<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;"><div class="av" style="font-size:11px;">'+(u.initials||'ST')+'</div><div style="min-width:0;"><div style="font-size:13px;font-weight:700;color:var(--td);">'+u.name+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+(u.email||'')+'</div><div style="font-size:11px;font-weight:700;margin-top:2px;">'+status+'</div></div></div>';
+      var btns=document.createElement('div');btns.style='display:flex;gap:6px;flex-wrap:wrap;';
+      var toggleBtn=document.createElement('button');toggleBtn.className='smbtn';
+      toggleBtn.style=u.disabled?'background:var(--sl);color:var(--s);padding:7px 12px;font-size:11px;':'background:var(--dl);color:var(--d);padding:7px 12px;font-size:11px;';
+      toggleBtn.textContent=u.disabled?'🟢 Enable':'🔒 Disable';
+      (function(docId,ud,r){toggleBtn.onclick=function(){toggleStaff(docId,ud,r);};})(d.id,u,row);
+      var resetBtn=document.createElement('button');resetBtn.className='smbtn';resetBtn.style='background:var(--pl);color:var(--p);padding:7px 12px;font-size:11px;';resetBtn.textContent='🔑 Reset PW';
+      (function(email){resetBtn.onclick=function(){resetStaffPw(email);};})(u.email);
+      btns.appendChild(toggleBtn);btns.appendChild(resetBtn);row.appendChild(btns);el.appendChild(row);
+    });
+  }).catch(function(e){el.innerHTML='<div class="empty"><div class="eic">❌</div><div class="et">Error loading staff</div></div>';});
+}
+
+function toggleStaff(docId,ud,rowEl){
+  var newStatus=!ud.disabled;
+  loading(true,(newStatus?'Disabling':'Enabling')+' account...');
+  db.collection('users').doc(docId).update({disabled:newStatus}).then(function(){
+    toast((newStatus?'Account disabled 🔒':'Account enabled 🟢'));loading(false);loadStaffMgmt();
+  }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
+}
+
+function resetStaffPw(email){
+  if(!confirm('Send password reset email to '+email+'?'))return;
+  loading(true,'Sending reset email...');
+  auth.sendPasswordResetEmail(email).then(function(){
+    toast('Reset email sent to '+email+' ✅');loading(false);
+  }).catch(function(e){toast('Error: '+e.message,'error');loading(false);});
+}
+
+// ===== CUSTOMER LEDGER =====
+var clCustId=null,clCustData=null;
+function onCLCu(c){clCustId=c.id;clCustData=c;}
+
+function loadLedger(){
+  var cu=R('cl-cu');if(!cu||!cu.value.trim()){toast('Select a customer','error');return;}
+  if(!clCustId){toast('Please select customer from dropdown','error');return;}
+  var from=R('cl-from').value,to=R('cl-to').value;
+  if(!from||!to){toast('Select date range','error');return;}
+  var fromD=new Date(from);fromD.setHours(0,0,0,0);var toD=new Date(to);toD.setHours(23,59,59,999);
+  var el=R('cl-body');el.innerHTML='<div style="text-align:center;padding:20px;color:var(--tm);">Loading...</div>';
+  loading(true,'Loading ledger...');
+  Promise.all([
+    db.collection('invoices').where('customerId','==',clCustId).orderBy('createdAt','asc').get(),
+    db.collection('receipts').where('customerId','==',clCustId).orderBy('createdAt','asc').get(),
+    db.collection('returns').where('customerId','==',clCustId).orderBy('createdAt','asc').get()
+  ]).then(function(res){
+    var rows=[];
+    res[0].docs.forEach(function(d){var i=d.data();var dt=i.createdAt&&i.createdAt.toDate?i.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:i.type==='gst'?'GST Sale':'Non-GST Sale',ref:i.invoiceNo,details:(i.items||[]).map(function(x){return x.product;}).join(', '),debit:i.totalAmount||0,credit:0});});
+    res[1].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:'Receipt',ref:r.receiptNo,details:r.paymentMode,debit:0,credit:r.amount||0});});
+    res[2].docs.forEach(function(d){var r=d.data();var dt=r.createdAt&&r.createdAt.toDate?r.createdAt.toDate():new Date(0);if(dt>=fromD&&dt<=toD)rows.push({time:dt,type:'Return',ref:'CR',details:(r.items||[]).map(function(x){return x.product;}).join(', '),debit:0,credit:r.totalCredit||0});});
+    rows.sort(function(a,b){return a.time-b.time;});
+    loading(false);
+    if(!rows.length){el.innerHTML='<div class="empty"><div class="eic">📒</div><div class="et">No transactions in this range</div></div>';return;}
+    var bal=clCustData.outstanding||0;
+    var tDebit=0,tCredit=0;
+    rows.forEach(function(r){tDebit+=r.debit;tCredit+=r.credit;});
+    var html='<div style="background:var(--pl);border-radius:14px;padding:12px 14px;margin:0 14px 12px;"><div style="font-size:13px;font-weight:800;color:var(--td);">'+clCustData.name+'</div><div style="font-size:11px;color:var(--tm);font-weight:600;">'+from+' to '+to+'</div></div>';
+    html+='<div style="overflow-x:auto;margin:0 14px 12px;"><table class="tbl" style="min-width:500px;"><thead><tr><th>Date</th><th>Type</th><th>Ref</th><th>Details</th><th style="color:#c00;">Debit</th><th style="color:green;">Credit</th><th>Balance</th></tr></thead><tbody>';
+    var runBal=0;
+    rows.forEach(function(r){
+      runBal+=r.debit-r.credit;
+      var typeColor=r.type==='GST Sale'?'color:var(--d);':r.type==='Non-GST Sale'?'color:var(--w);':r.type==='Receipt'?'color:var(--s);':'color:var(--p);';
+      html+='<tr><td>'+tsD(r.time)+'</td><td style="font-weight:700;'+typeColor+'">'+r.type+'</td><td style="font-size:11px;">'+r.ref+'</td><td style="font-size:11px;max-width:120px;">'+r.details+'</td><td style="color:var(--d);font-weight:700;">'+(r.debit>0?fmt(r.debit):'—')+'</td><td style="color:var(--s);font-weight:700;">'+(r.credit>0?fmt(r.credit):'—')+'</td><td style="font-weight:800;color:var(--td);">'+fmt(runBal)+'</td></tr>';
+    });
+    html+='<tr style="background:var(--pl);"><td colspan="4" style="font-weight:800;color:var(--td);">TOTAL</td><td style="color:var(--d);font-weight:800;">'+fmt(tDebit)+'</td><td style="color:var(--s);font-weight:800;">'+fmt(tCredit)+'</td><td style="font-weight:800;color:var(--p);">'+fmt(runBal)+'</td></tr>';
+    html+='</tbody></table></div>';
+    el.innerHTML=html;
+    VT._ledgerRows=rows;VT._ledgerCust=clCustData;VT._ledgerRange={from:from,to:to,runBal:runBal};
+  }).catch(function(e){toast('Error: '+e.message,'error');loading(false);el.innerHTML='<div class="empty"><div class="eic">❌</div><div class="et">Error loading ledger</div></div>';});
+}
+
+function exportLedger(format){
+  if(!VT._ledgerRows||!VT._ledgerRows.length){toast('Load ledger first','error');return;}
+  var rows=VT._ledgerRows,cust=VT._ledgerCust,range=VT._ledgerRange;
+  var data=[['Date','Type','Reference','Details','Debit (₹)','Credit (₹)','Balance (₹)']];
+  var runBal=0;
+  rows.forEach(function(r){runBal+=r.debit-r.credit;data.push([tsD(r.time),r.type,r.ref,r.details,r.debit||0,r.credit||0,runBal]);});
+  data.push(['','','','TOTAL',rows.reduce(function(s,r){return s+r.debit;},0),rows.reduce(function(s,r){return s+r.credit;},0),runBal]);
+  if(format==='excel'){
+    var wb=XLSX.utils.book_new();
+    var ws=XLSX.utils.aoa_to_sheet(data);
+    // Color coding
+    var XLSX2=XLSX;
+    ws['!cols']=[{wch:12},{wch:14},{wch:12},{wch:25},{wch:12},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,ws,cust.name.substring(0,31));
+    XLSX.writeFile(wb,'Ledger_'+cust.name+'_'+range.from+'_to_'+range.to+'.xlsx');
+    toast('Excel downloaded! ✅');
+  } else {
+    var html='<html><head><title>Customer Ledger</title><style>body{font-family:Arial,sans-serif;padding:20px;}h2{color:#0055BB;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#0055BB;color:#fff;padding:8px;}td{padding:7px;border-bottom:1px solid #ddd;}.gst{background:#ffe8e8;}.ng{background:#fff3e0;}.rcp{background:#e8f5e9;}.ret{background:#e3f2fd;}.tot{background:#f3e5f5;font-weight:800;}</style></head><body><h2>Customer Ledger — '+cust.name+'</h2><p>Period: '+range.from+' to '+range.to+'</p><table><tr><th>Date</th><th>Type</th><th>Ref</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th></tr>';
+    var rb=0;
+    rows.forEach(function(r){rb+=r.debit-r.credit;var cls=r.type==='GST Sale'?'gst':r.type==='Non-GST Sale'?'ng':r.type==='Receipt'?'rcp':'ret';html+='<tr class="'+cls+'"><td>'+tsD(r.time)+'</td><td>'+r.type+'</td><td>'+r.ref+'</td><td>'+r.details+'</td><td>'+(r.debit>0?'₹'+r.debit:'—')+'</td><td>'+(r.credit>0?'₹'+r.credit:'—')+'</td><td>₹'+rb+'</td></tr>';});
+    html+='<tr class="tot"><td colspan="4">TOTAL</td><td>₹'+rows.reduce(function(s,r){return s+r.debit;},0)+'</td><td>₹'+rows.reduce(function(s,r){return s+r.credit;},0)+'</td><td>₹'+rb+'</td></tr>';
+    html+='</table></body></html>';
+    var w=window.open('','_blank');if(w){w.document.write(html);w.document.close();w.print();toast('PDF opened ✅');}else toast('Allow popups for PDF','warning');
+  }
+}
 </script>
 </body>
 </html>
